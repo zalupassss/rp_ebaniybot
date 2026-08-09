@@ -40,7 +40,7 @@ RP_COMMANDS = {
         "aliases": ["засосать", "!засосать"],
         "target_text": "🔥 <b>{sender}</b> страстно засосался с <b>{target}</b>!",
         "solo_text": "😳 <b>{sender}</b> ищет, кого бы засосать...",
-        "gifs": ["https://media1.tenor.com/m/RxOLELh65TEAAAAC/kiss-anime-the-villainess-is-adored-by-the-prince-of-the-neighbor-kingdom.gif"],
+        "gifs": ["https://media1.tenor.com/m/9u2vmryDP-cAAAAC/horimiya-animes.gif"],
     },
     "укусить": {
         "aliases": ["укусить", "/bite", "!укусить", "куснуть"],
@@ -60,7 +60,7 @@ RP_COMMANDS = {
         "solo_text": "😏 <b>{sender}</b> красиво строит глазки... воздуху..",
         "gifs": ["https://media1.tenor.com/m/JBNgKsQdUmEAAAAC/anime.gif"],
     },
-    "засосать_в_шею": {
+    "засосатьвшею": {
         "aliases": [
             "засосать в шею",
             "засосать_в_шею",
@@ -69,13 +69,13 @@ RP_COMMANDS = {
         ],
         "target_text": "🧛 <b>{sender}</b> оставляет сочный засос на шее <b>{target}</b>!",
         "solo_text": "🧛 <b>{sender}</b> хищно засосал воздух...",
-        "gifs": ["https://media1.tenor.com/m/qvFLVVUEWgIAAAAC/anime-golden.gif"],
+        "gifs": ["https://media1.tenor.com/m/5FOgNEcoaYMAAAAC/neck-kisses.gif"],
     },
     "покормить": {
         "aliases": ["покормить", "/feed", "!покормить", "накормить"],
         "target_text": "🍲 <b>{sender}</b> вкусно кормит <b>{target}</b>! Теперь кто-то сыт и доволен 😊",
         "solo_text": "🍲 <b>{sender}</b> вкусно кушает! Приятного аппетита 😋",
-        "gifs": ["https://media1.tenor.com/m/xS09IqCS1e0AAAAd/anime-anime-boy.gif"],
+        "gifs": ["https://media1.tenor.com/m/TRuJrALdXnoAAAAC/lycoris-recoil-anime-feed.gif"],
     },
 }
 
