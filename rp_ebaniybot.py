@@ -75,7 +75,7 @@ RP_COMMANDS = {
         "aliases": ["покормить", "/feed", "!покормить", "накормить"],
         "target_text": "🍲 <b>{sender}</b> вкусно кормит <b>{target}</b>! Теперь кто-то сыт и доволен 😊",
         "solo_text": "🍲 <b>{sender}</b> вкусно кушает! Приятного аппетита 😋",
-        "gifs": ["https://media1.tenor.com/m/TRuJrALdXnoAAAAC/lycoris-recoil-anime-feed.gif"],
+        "gifs": ["https://media1.tenor.com/m/y_xVq9Ea-YUAAAAC/anime-acchi-kocchi.gif"],
     },
 }
 
