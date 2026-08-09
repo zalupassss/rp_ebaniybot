@@ -124,16 +124,16 @@ def handle_rp(message):
     if gifs:
         gif_to_send = random.choice(gifs)
         
-        # Оборачиваем всё в рамочку (blockquote) и прячем ссылку
-        formatted_text = f"<blockquote>{text}\n<a href='{gif_to_send}'>&#8204;</a></blockquote>"
+        # Без blockquote (нет значка цитаты), но со скрытой ссылкой для гифки
+        formatted_text = f"{text}\n<a href='{gif_to_send}'>&#8204;</a>"
         
         bot.send_message(
             chat_id=message.chat.id,
             text=formatted_text,
-            parse_mode="HTML", # Важно! Используем HTML, чтобы работали <b> и <blockquote>
-            reply_to_message_id=message.message_id,
+            parse_mode="HTML",
+            reply_to_message_id=message.message_id,  # Бот делает реплай на команду
         )
-    else:   
+    else:    
         bot.send_message(
             chat_id=message.chat.id,
             text=f"{text}\n\n<i>(Гифка ещё не привязана)</i>",
