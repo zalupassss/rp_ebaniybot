@@ -6,7 +6,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from flask import Flask
 
 # 🔑 Вставь сюда свой токен от @BotFather
-TOKEN = "8892392566:AAHeBPgKOWafoMzp-rKryHE1EVaOXht2r6k"
+TOKEN = "8892392566:AAE0rSE7QW21zfgZsKhIpf9NrU4OjxR52HY"
 bot = telebot.TeleBot(TOKEN)
 
 # Создаем мини-сайт для Render, чтобы хостинг понимал, что проект живой
@@ -124,13 +124,12 @@ def handle_rp(message):
     if gifs:
         gif_to_send = random.choice(gifs)
         
-        # Секретный трюк: прячем ссылку на гифку в невидимый символ (&#8204;) внутри blockquote!
-        formatted_text = f"<blockquote>{text}\n<a href='{gif_to_send}'>&#8204;</a></blockquote>"
-        
-        bot.send_message(
+        # Используем send_animation для автовоспроизведения гифки
+        bot.send_animation(
             chat_id=message.chat.id,
-            text=formatted_text,
-            parse_mode="HTML",
+            animation=gif_to_send,
+            caption=text, # Текст становится подписью под гифкой
+            parse_mode="Markdown", # Используем Markdown, чтобы работали ** **
             reply_to_message_id=message.message_id,
         )
     else:   
