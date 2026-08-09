@@ -58,7 +58,7 @@ RP_COMMANDS = {
         "aliases": ["флиртовать", "/flirt", "!флиртовать"],
         "target_text": "😏 **{sender}** пофлиртовал с **{target}**!",
         "solo_text": "😏 **{sender}** красиво строит глазки... воздуху..",
-        "gifs": ["https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGpmb2Flb3V3dGw0aWY0eXh6c3hrM3pwY3hpZDVzeTFiZG9lZDRvZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/P787NFr8HnP3NvFz89/giphy.gif],
+        "gifs": ["https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGpmb2Flb3V3dGw0aWY0eXh6c3hrM3pwY3hpZDVzeTFiZG9lZDRvZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/P787NFr8HnP3NvFz89/giphy.gif"],
     },
     "засосать_в_шею": {
         "aliases": [
