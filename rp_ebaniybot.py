@@ -68,7 +68,7 @@ def get_user_data(user_id):
         USERS_ECONOMY[user_id] = {
             "coins": 100,
             "inventory": [],        # купленные товары
-            "active_effects": [],   включенные эффекты
+            "active_effects": [],   # включенные эффекты
             "purchase_cooldowns": {}, # {item_key: timestamp последнего приобретения}
             "ramen_expires_at": 0,  # таймер окончания рамена
             "last_passive_check": time.time(),
