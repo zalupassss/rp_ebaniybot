@@ -20,7 +20,7 @@ def home():
 RP_COMMANDS = {
     "поцеловать": {
         "aliases": ["поцеловать", "/kiss", "!поцеловать", "поцелуй"],
-        "target_text": "💋 **{sender}** страстно целует **{target}**!",
+        "target_text": "💋 **{sender}** целует **{target}**!",
         "solo_text": "💋 **{sender}** целует воздух... Кого-то явно не хватает!",
         "gifs": ["https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExMmF2bjhuN3M2cTUxMHhlbms2M3Y0NnMwMzZyOHJ1OWpnNXZzdWhoNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/NDV8xXN4VRf8CiMAx5/giphy.gif"],
     },
@@ -34,31 +34,31 @@ RP_COMMANDS = {
         "aliases": ["погладить", "/pat", "!погладить"],
         "target_text": "🫳 **{sender}** нежно гладит **{target}** по голове!",
         "solo_text": "🫳 **{sender}** гладит сам себя...",
-        "gifs": ["https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExZG5jZ2VtM245eTlqMXFtOWowc2thOXVwaDV2bWJod2wxdTg5NTMxMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/5tmRHwTlHAA9WkVxTU/giphy.gif"],
+        "gifs": ["https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExaHVkazJ3ajB1MnZscnhkZXhrdmNoeXllaHBuY2Y3MWs3aHV1bmwzNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/5tmRHwTlHAA9WkVxTU/giphy.gif"],
     },
     "засосать": {
         "aliases": ["засосать", "!засосать"],
         "target_text": "🔥 **{sender}** страстно засосался с **{target}**!",
         "solo_text": "😳 **{sender}** ищет, кого бы засосать...",
-        "gifs": ["https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExZzk4bHV1ZDhsYjlkOW1qNW5pM3c1aGRjdTZlb3NlZXNrd2k2MHZxNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/MQVpBqASxSlFu/giphy.gif"],
+        "gifs": ["https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2dkem8wYTE1Y25laGwwc3Q3dXE5MmI3dnp5cmxnZG95ZW0xMDBzOSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/MQVpBqASxSlFu/giphy.gif"],
     },
     "укусить": {
         "aliases": ["укусить", "/bite", "!укусить", "куснуть"],
         "target_text": "🦷 **{sender}** делает аккуратный «кусь» **{target}**!",
         "solo_text": "😬 **{sender}** делает «кусь» воздуха!",
-        "gifs": ["https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZHV5ODVjbGxvNDd5c2NzNnpjdno2MWw1MHB1bzU0bzhqZHFjMngyMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0Iy0QdzD3AA6bgIg/giphy.gif"],
+        "gifs": ["https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExc2FzeHFmaGtjZm1veXVwdzEzdWozd2hiZnRlNjhra3J4Y2ZzbDFhaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0Iy0QdzD3AA6bgIg/giphy.gif"],
     },
     "трахнуть": {
         "aliases": ["трахнуть", "!трахнуть"],
         "target_text": "💥 **{sender}** трахнул **{target}**!",
         "solo_text": "⚡️ **{sender}** но член не встал...",
-        "gifs": ["https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdjB4OHZqZXhjZHd1aGwzZHMyZ2s0bHhmNG5lNjUzMW5zNHMxbnNtNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/x2SJCmWQ0DoIEzwwAL/giphy.gif"],
+        "gifs": ["https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjZodmFrbzV3cXJqYTBxaTZvZXh2M201ZTZjZWxqemx4eTRqbzZnMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/rFYcBg4JuDDP2/giphy.gif"],
     },
     "флиртовать": {
         "aliases": ["флиртовать", "/flirt", "!флиртовать"],
         "target_text": "😏 **{sender}** пофлиртовал с **{target}**!",
         "solo_text": "😏 **{sender}** красиво строит глазки... воздуху..",
-        "gifs": ["https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXhkanEybzFjNnU4ODZzNW11YXJqNmNwdHZ1ZGRhOG1nNGRqMWN1eSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/P787NFr8HnP3NvFz89/giphy.gif"],
+        "gifs": ["https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGpmb2Flb3V3dGw0aWY0eXh6c3hrM3pwY3hpZDVzeTFiZG9lZDRvZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/P787NFr8HnP3NvFz89/giphy.gif],
     },
     "засосать_в_шею": {
         "aliases": [
@@ -69,13 +69,13 @@ RP_COMMANDS = {
         ],
         "target_text": "🧛 **{sender}** оставляет сочный засос на шее **{target}**!",
         "solo_text": "🧛 **{sender}** хищно засосал воздух...",
-        "gifs": [],
+        "gifs": ["https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHUxdGZ0NmZrNmltNm12YTNmMDV1YWVqa2s0MGt6c3QwNmg1d3BjcyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/WynnqxhdFEPYY/giphy.gif"],
     },
     "покормить": {
         "aliases": ["покормить", "/feed", "!покормить", "накормить"],
         "target_text": "🍲 **{sender}** вкусно кормит **{target}**! Теперь кто-то сыт и доволен 😊",
         "solo_text": "🍲 **{sender}** вкусно кушает! Приятного аппетита 😋",
-        "gifs": [],
+        "gifs": ["https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjB1OHRpMWZ4NmJtcnVpMDlraWhreTljNGpqYTR6OHRia3hrYnVqdiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/POl4x8sulgMF2ZrBrz/giphy.gif"],
     },
 }
 
