@@ -62,7 +62,7 @@ RP_COMMANDS = {
         "gifs": ["https://media1.tenor.com/m/TlFyVb6dRqkAAAAC/anime-horusultra.gif"],
     },  # <--- Вот эта запятая обязательна!
     "трахнуть": {
-        "aliases": ["выебать", "/sex", "!трахнуть"],
+        "aliases": ["трахнуть", "выебать", "/sex", "!трахнуть"],  # <--- Добавили само слово сюда
         "target_text": "🔥 <b>{sender}</b> нежно трахнул <b>{target}</b>!",
         "solo_text": "🔥 <b>{sender}</b> но член не встал...",
         "gifs": ["https://media.tenor.com/SiL8iSajNNQAAAAi/hi.gif"],
