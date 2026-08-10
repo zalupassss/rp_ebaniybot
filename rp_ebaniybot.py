@@ -60,9 +60,9 @@ RP_COMMANDS = {
         "target_text": "😏 <b>{sender}</b> игриво флиртует с <b>{target}</b>~",
         "solo_text": "😏 <b>{sender}</b> тренирует навыки флирта перед зеркалом!",
         "gifs": ["https://media1.tenor.com/m/TlFyVb6dRqkAAAAC/anime-horusultra.gif"],
-    },  # <--- Вот эта запятая обязательна!
+    },
     "трахнуть": {
-        "aliases": ["трахнуть", "выебать", "/sex", "!трахнуть"],  # <--- Добавили само слово сюда
+        "aliases": ["трахнуть", "выебать", "/sex", "!трахнуть"],
         "target_text": "🔥 <b>{sender}</b> нежно трахнул <b>{target}</b>!",
         "solo_text": "🔥 <b>{sender}</b> но член не встал...",
         "gifs": ["https://media.tenor.com/SiL8iSajNNQAAAAi/hi.gif"],
@@ -514,7 +514,7 @@ def handle_rp(message):
         gif_to_send = random.choice(gifs)
         formatted_text = f"{text}\n<a href='{gif_to_send}'>&#8204;</a>"
         bot.send_message(message.chat.id, text=formatted_text, parse_mode="HTML", reply_to_message_id=message.message_id)
-    else:    
+    else:   
         bot.send_message(message.chat.id, text=text, parse_mode="HTML", reply_to_message_id=message.message_id)
 
 # ==========================================
@@ -529,6 +529,10 @@ def handle_all_messages(message):
     user_id = message.from_user.id
     text = message.text.lower().strip()
     
+    # Считаем пассивный фарм для всех сообщений (если включен рамен)
+    u_data = get_user_data(user_id)
+    update_passive_coins(u_data)
+
     # 🐊 Логика проверки Крокодила
     if chat_id in CROCODILE_GAMES:
         game = CROCODILE_GAMES[chat_id]
@@ -546,7 +550,6 @@ def handle_all_messages(message):
                 bot.send_message(chat_id, "Эй, ведущий, нельзя угадывать свое же слово! 😅", reply_to_message_id=message.message_id)
             else:
                 reward = 100 # Награда победителю
-                u_data = get_user_data(user_id)
                 u_data["coins"] += reward
                 bot.send_message(
                     chat_id,
@@ -555,27 +558,24 @@ def handle_all_messages(message):
                     parse_mode="Markdown",
                     reply_to_message_id=message.message_id
                 )
-                del CROCODILE_GAMES[chat_id]
-
-    # Пассивный фарм и префиксы для обычных сообщений
-    if not message.text.startswith('/'):
-        u_data = get_user_data(user_id)
-        update_passive_coins(u_data)
-        
-        # Начисление за сообщение (ушки дают 3 вместо 1)
-        gain = 3 if "ears" in u_data["active_effects"] else 1
-        u_data["coins"] += gain
+                del CROCODILE_GAMES[chat_id] # Удаляем игру после победы
 
 # ==========================================
-# ЗАПУСК БОТА
+# ЗАПУСК БОТА И ВЕБ-СЕРВЕРА
 # ==========================================
-
-def run_bot():
-    bot.infinity_polling()
+def run_flask():
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
 
 if __name__ == "__main__":
-    t = threading.Thread(target=run_bot)
-    t.start()
-
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    # Запускаем Flask в отдельном потоке (для хостингов типа Render)
+    threading.Thread(target=run_flask, daemon=True).start()
+    
+    # Запускаем бота
+    print("Бот запущен и работает!")
+    while True:
+        try:
+            bot.infinity_polling(timeout=10, long_polling_timeout=5)
+        except Exception as e:
+            print(f"Ошибка бота: {e}")
+            time.sleep(5)
