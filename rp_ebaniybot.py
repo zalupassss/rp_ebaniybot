@@ -54,13 +54,13 @@ RP_COMMANDS = {
         "aliases": ["оставить засос", "засос", "!засос"],
         "target_text": "💋 <b>{sender}</b> оставляет страстный засос на шее <b>{target}</b>!",
         "solo_text": "💋 <b>{sender}</b> пытается оставить засос... но на ком?",
-        "gifs": ["https://media1.tenor.com/m/6yHnO-XyV0AAAAAC/anime-kiss-neck.gif"],
+        "gifs": ["https://media1.tenor.com/m/5FOgNEcoaYMAAAAC/neck-kisses.gif"],
     },
     "флиртовать": {
         "aliases": ["флиртовать", "флирт", "/flirt", "!флирт"],
         "target_text": "😏 <b>{sender}</b> игриво флиртует с <b>{target}</b>~",
         "solo_text": "😏 <b>{sender}</b> тренирует навыки флирта перед зеркалом!",
-        "gifs": ["https://media1.tenor.com/m/y2M2gHl3vKwAAAAC/anime-flirt.gif"],
+        "gifs": ["https://media1.tenor.com/m/TlFyVb6dRqkAAAAC/anime-horusultra.gif"],
     },
 }
 
