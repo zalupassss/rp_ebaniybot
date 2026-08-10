@@ -73,6 +73,42 @@ RP_COMMANDS = {
 CHAT_CUSTOM_RP = {}        # {chat_id: {command_name: data_dict}}
 USER_ADDING_STATE = {}     # {user_id: chat_id}
 USERS_ECONOMY = {}         # {user_id: data_dict}
+CROCODILE_GAMES = {}       # {chat_id: {"word": "...", "host_id": 123456}}
+
+# 🐊 Огромная база слов для игры "Крокодил"
+CROCODILE_WORDS = [
+    # Животные
+    "собака", "кошка", "слон", "жираф", "бегемот", "носорог", "тигр", "лев", "леопард", "гепард", "рысь", 
+    "волк", "медведь", "лиса", "заяц", "кролик", "акула", "дельфин", "кит", "тюлень", "пингвин", "страус", 
+    "павлин", "орел", "сова", "ворона", "змея", "лягушка", "крокодил", "ящерица", "паук", "бабочка", "муха", 
+    "комар", "пчела", "оса", "утконос", "енот", "хомяк", "попугай", "черепаха", "улитка",
+    # Профессии
+    "врач", "учитель", "повар", "программист", "дизайнер", "инженер", "архитектор", "строитель", "электрик", 
+    "сантехник", "актер", "певец", "музыкант", "художник", "писатель", "журналист", "фотограф", "блогер", 
+    "полицейский", "пожарный", "космонавт", "пилот", "капитан", "водитель", "таксист", "курьер", "стоматолог",
+    # Еда
+    "пицца", "суши", "бургер", "пельмени", "борщ", "суп", "макароны", "картошка", "сыр", "колбаса", "сосиски", 
+    "хлеб", "масло", "молоко", "сметана", "творог", "йогурт", "шоколад", "конфета", "торт", "мороженое", 
+    "печенье", "яблоко", "банан", "апельсин", "мандарин", "лимон", "арбуз", "дыня", "клубника", "малина", 
+    "виноград", "шашлык", "шаурма",
+    # Предметы
+    "стол", "стул", "диван", "кровать", "шкаф", "телевизор", "компьютер", "ноутбук", "телефон", "смартфон", 
+    "планшет", "наушники", "микрофон", "камера", "часы", "очки", "зеркало", "ковер", "лампа", "люстра", 
+    "чайник", "кастрюля", "сковорода", "тарелка", "ложка", "вилка", "нож", "стакан", "кружка", "бутылка", 
+    "рюкзак", "сумка", "кошелек", "зонт", "пылесос", "утюг", "книга", "тетрадь", "ручка", "карандаш",
+    # Транспорт
+    "автомобиль", "машина", "автобус", "троллейбус", "трамвай", "поезд", "метро", "самолет", "вертолет", 
+    "корабль", "лодка", "яхта", "катер", "велосипед", "самокат", "мотоцикл", "мопед", "трактор", "танк",
+    # Природа и Места
+    "дерево", "цветок", "трава", "куст", "лес", "поле", "луг", "гора", "скала", "река", "озеро", "море", 
+    "океан", "пляж", "остров", "пустыня", "город", "деревня", "улица", "дом", "квартира", "подъезд", 
+    "крыша", "окно", "дверь", "балкон", "космос", "планета", "звезда", "луна", "солнце",
+    # Абстрактные понятия, разное и современное
+    "любовь", "дружба", "счастье", "радость", "грусть", "злость", "страх", "удивление", "магия", "волшебство", 
+    "наука", "искусство", "музыка", "кино", "театр", "спорт", "футбол", "баскетбол", "волейбол", "теннис", 
+    "хоккей", "шахматы", "интернет", "сайт", "игра", "программа", "вирус", "пароль", "нейросеть", "стрим", 
+    "донат", "крипта", "фриланс", "хайп", "краш", "кринж", "вайб", "мем", "аниме", "манга"
+]
 
 SHOP_ITEMS = {
     "ears": {"name": "🐾 Кошачьи ушки", "price": 100, "desc": "Эффект 'Милота': мурр..~ и x3 некокойна."},
@@ -95,13 +131,11 @@ def get_user_data(user_id):
         }
     return USERS_ECONOMY[user_id]
 
-# Расчет пассивного дохода от рамена при любом обращении пользователя
+# Расчет пассивного дохода от рамена
 def update_passive_coins(u_data):
     now = time.time()
-    # Проверяем не истек ли рамен
     if u_data["ramen_expires_at"] > now:
         elapsed = now - u_data["last_passive_check"]
-        # 1 некокойн каждые 30 секунд
         earned = int(elapsed // 30)
         if earned > 0:
             u_data["coins"] += earned
@@ -109,8 +143,56 @@ def update_passive_coins(u_data):
     else:
         u_data["last_passive_check"] = now
 
+
 # ==========================================
-# ТЕКСТОВЫЕ КОМАНДЫ И ТРИГГЕРЫ
+# ИГРА "КРОКОДИЛ"
+# ==========================================
+
+@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() == "крокодил")
+def start_crocodile(message):
+    chat_id = message.chat.id
+    user_id = message.from_user.id
+    
+    if chat_id in CROCODILE_GAMES:
+        bot.send_message(chat_id, "🐊 Игра уже идет! Чтобы сдаться, напишите `сдаемся`.", parse_mode="Markdown")
+        return
+        
+    word = random.choice(CROCODILE_WORDS)
+    CROCODILE_GAMES[chat_id] = {
+        "word": word,
+        "host_id": user_id
+    }
+    
+    markup = InlineKeyboardMarkup()
+    markup.add(InlineKeyboardButton("👀 Посмотреть слово (только ведущий)", callback_data="croc_show_word"))
+    
+    bot.send_message(
+        chat_id,
+        f"🐊 **Игра Крокодил началась!**\n\n"
+        f"Ведущий: **{message.from_user.first_name}**\n"
+        f"Ведущий должен объяснить слово, не называя его, а остальные угадать в чате!\n\n"
+        f"Устали гадать? Напишите `сдаемся`.",
+        reply_markup=markup,
+        parse_mode="Markdown"
+    )
+
+@bot.callback_query_handler(func=lambda call: call.data == "croc_show_word")
+def croc_show_word(call):
+    chat_id = call.message.chat.id
+    if chat_id not in CROCODILE_GAMES:
+        bot.answer_callback_query(call.id, "Эта игра уже закончилась!", show_alert=True)
+        return
+        
+    game = CROCODILE_GAMES[chat_id]
+    if call.from_user.id != game["host_id"]:
+        bot.answer_callback_query(call.id, "Эй! Ты не ведущий, тебе смотреть нельзя! 😡", show_alert=True)
+        return
+        
+    bot.answer_callback_query(call.id, f"Твое слово:\n\n{game['word'].upper()}\n\nОбъясни его остальным!", show_alert=True)
+
+
+# ==========================================
+# ЭКОНОМИКА, МАГАЗИН И РП
 # ==========================================
 
 @bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in ["баланс", "монеты", "коинс"])
@@ -132,14 +214,12 @@ def show_profile(message):
     
     inv = ", ".join([SHOP_ITEMS[item]["name"] for item in u_data["inventory"]]) or "Пусто"
     
-    # Сборка текста профиля
     text = (
         f"👤 **Профиль: {user.first_name}**\n\n"
         f"🪙 Баланс: `{u_data['coins']} некокойнов`\n"
         f"🎒 Инвентарь: {inv}\n"
     )
     
-    # Статус рамена
     now = time.time()
     if u_data["ramen_expires_at"] > now:
         rem_min = int((u_data["ramen_expires_at"] - now) // 60)
@@ -153,7 +233,6 @@ def show_profile(message):
         "🛠 **Управление эффектами:**\nнажимай на кнопки ниже, чтобы включить или выключить их:"
     )
     
-    # Создаем инлайн-кнопки для каждого предмета из инвентаря
     markup = InlineKeyboardMarkup(row_width=1)
     for item_key in u_data["inventory"]:
         item_name = SHOP_ITEMS[item_key]["name"]
@@ -183,15 +262,12 @@ def toggle_effect(call):
         u_data["active_effects"].append(item_key)
         bot.answer_callback_query(call.id, "Эффект успешно активирован!")
         
-    # Обновляем профиль с новыми кнопками
-    # Вызываем логику генерации текста профиля заново через редактирование сообщения
     try:
         show_profile_edited(call.message, user_id)
     except:
         pass
 
 def show_profile_edited(message, user_id):
-    user = bot.get_chat(user_id) # или берем из message
     u_data = get_user_data(user_id)
     inv = ", ".join([SHOP_ITEMS[item]["name"] for item in u_data["inventory"]]) or "Пусто"
     
@@ -218,7 +294,6 @@ def show_profile_edited(message, user_id):
 
 @bot.message_handler(func=lambda m: m.text and m.text.lower().strip() == "магазин")
 def show_shop(message):
-    u_data = get_user_data(message.from_user.id)
     markup = InlineKeyboardMarkup(row_width=1)
     for key, item in SHOP_ITEMS.items():
         markup.add(InlineKeyboardButton(f"{item['name']} — {item['price']} 🪙", callback_data=f"buy_{key}"))
@@ -246,7 +321,6 @@ def buy_item(call):
         
     item = SHOP_ITEMS[item_key]
     
-    # Проверка кулдауна на покупку (1 раз в сутки / 86400 секунд)
     now = time.time()
     last_buy = u_data["purchase_cooldowns"].get(item_key, 0)
     if now - last_buy < 86400:
@@ -261,9 +335,7 @@ def buy_item(call):
     u_data["coins"] -= item["price"]
     u_data["purchase_cooldowns"][item_key] = now
     
-    # Обработка добавления в инвентарь или активации рамена
     if item_key == "ramen":
-        # Рамен активирует таймер эффекта на 1 час
         u_data["ramen_expires_at"] = now + 3600
         if "ramen" not in u_data["inventory"]:
             u_data["inventory"].append("ramen")
@@ -315,7 +387,6 @@ def rp_panel_word(message):
         parse_mode="Markdown"
     )
 
-# Управление кастомными РП-командами
 @bot.callback_query_handler(func=lambda call: call.data.startswith("rp_menu_"))
 def rp_menu_callback(call):
     chat_id = call.message.chat.id
@@ -379,15 +450,13 @@ def process_new_rp(message):
     }
     bot.send_message(chat_id, f"✅ Кастомная команда `{name}` добавлена!", parse_mode="Markdown", reply_to_message_id=message.message_id)
 
-# ==========================================
-# ОБРАБОТЧИК РП КОМАНД + ФАРМ
-# ==========================================
 @bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in ["команды", "помощь", "/help"])
 def show_all_commands(message):
     text = (
         "📜 **Список всех команд:**\n\n"
         "🎭 **РП-команды:** поцеловать, обнять, погладить, укусить, покормить, оставить засос, флиртовать, трахнуть\n"
         "🪙 **Экономика:** баланс, профиль, магазин, награда\n"
+        "🎮 **Игры:** крокодил\n"
         "🛠 **Кастом:** кастомрп (панель создания)"
     )
     bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_to_message_id=message.message_id)
@@ -413,7 +482,6 @@ def handle_rp(message):
     u_data = get_user_data(user.id)
     update_passive_coins(u_data)
     
-    # Фарм монет за РП (с учетом ушек: x3 если надеты)
     gain = 3 if "ears" in u_data["active_effects"] else 1
     u_data["coins"] += gain
     u_data["stats"]["actions"] += 1
@@ -431,7 +499,6 @@ def handle_rp(message):
     else:
         text = action_data["solo_text"].format(sender=sender)
 
-    # Применение эффектов к тексту ответа (префиксы)
     prefix = ""
     if "ears" in u_data["active_effects"]:
         prefix += "мурр..~ "
@@ -445,26 +512,59 @@ def handle_rp(message):
     gifs = action_data["gifs"]
     if gifs:
         gif_to_send = random.choice(gifs)
-        # Возвращаем тот самый скрытый тег ссылки, чтобы картинка была внутри сообщения
         formatted_text = f"{text}\n<a href='{gif_to_send}'>&#8204;</a>"
         bot.send_message(message.chat.id, text=formatted_text, parse_mode="HTML", reply_to_message_id=message.message_id)
     else:    
         bot.send_message(message.chat.id, text=text, parse_mode="HTML", reply_to_message_id=message.message_id)
-        
-# Пассивный фарм и префиксы для обычных сообщений
+
+# ==========================================
+# ОБЩИЙ ОБРАБОТЧИК (Крокодил + Пассивный фарм)
+# ==========================================
 @bot.message_handler(func=lambda m: True)
-def passive_farm_and_prefix(message):
-    if message.text and not message.text.startswith('/'):
-        user_id = message.from_user.id
+def handle_all_messages(message):
+    if not message.text:
+        return
+        
+    chat_id = message.chat.id
+    user_id = message.from_user.id
+    text = message.text.lower().strip()
+    
+    # 🐊 Логика проверки Крокодила
+    if chat_id in CROCODILE_GAMES:
+        game = CROCODILE_GAMES[chat_id]
+        word = game["word"]
+        
+        if text in ["сдаемся", "стоп крокодил"]:
+            bot.send_message(
+                chat_id, 
+                f"😔 Вы сдались! Загаданное слово было: **{word.upper()}**", 
+                parse_mode="Markdown"
+            )
+            del CROCODILE_GAMES[chat_id]
+        elif text == word:
+            if user_id == game["host_id"]:
+                bot.send_message(chat_id, "Эй, ведущий, нельзя угадывать свое же слово! 😅", reply_to_message_id=message.message_id)
+            else:
+                reward = 100 # Награда победителю
+                u_data = get_user_data(user_id)
+                u_data["coins"] += reward
+                bot.send_message(
+                    chat_id,
+                    f"🎉 **{message.from_user.first_name}** угадал слово **{word.upper()}**!\n"
+                    f"Награда: `{reward} некокойнов` 🪙",
+                    parse_mode="Markdown",
+                    reply_to_message_id=message.message_id
+                )
+                del CROCODILE_GAMES[chat_id]
+
+    # Пассивный фарм и префиксы для обычных сообщений
+    if not message.text.startswith('/'):
         u_data = get_user_data(user_id)
         update_passive_coins(u_data)
         
         # Начисление за сообщение (ушки дают 3 вместо 1)
         gain = 3 if "ears" in u_data["active_effects"] else 1
         u_data["coins"] += gain
-
-        # Если у пользователя включен какой-то префикс, можно опционально подменять или просто фиксировать
-        # (Обычно сообщения пользователей бот не переписывает, но можно сделать автоответ или логирование, либо применить префикс к РП-ответам)
 
 # ==========================================
 # ЗАПУСК БОТА
