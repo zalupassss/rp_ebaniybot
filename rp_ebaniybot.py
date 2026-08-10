@@ -445,21 +445,12 @@ def handle_rp(message):
     gifs = action_data["gifs"]
     if gifs:
         gif_to_send = random.choice(gifs)
-        try:
-            # Отправляем честную анимацию (гифку)
-            bot.send_animation(
-                message.chat.id, 
-                animation=gif_to_send, 
-                caption=text, 
-                parse_mode="HTML", 
-                reply_to_message_id=message.message_id
-            )
-        except Exception:
-            # Если вдруг ссылка сломана или это не прямая гифка — отправляем просто текст, чтобы не падало
-            bot.send_message(message.chat.id, text=text, parse_mode="HTML", reply_to_message_id=message.message_id)
+        # Возвращаем тот самый скрытый тег ссылки, чтобы картинка была внутри сообщения
+        formatted_text = f"{text}\n<a href='{gif_to_send}'>&#8204;</a>"
+        bot.send_message(message.chat.id, text=formatted_text, parse_mode="HTML", reply_to_message_id=message.message_id)
     else:    
         bot.send_message(message.chat.id, text=text, parse_mode="HTML", reply_to_message_id=message.message_id)
-
+        
 # Пассивный фарм и префиксы для обычных сообщений
 @bot.message_handler(func=lambda m: True)
 def passive_farm_and_prefix(message):
