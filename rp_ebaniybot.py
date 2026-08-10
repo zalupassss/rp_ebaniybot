@@ -67,6 +67,12 @@ RP_COMMANDS = {
         "solo_text": "🔥 <b>{sender}</b> но член не встал...",
         "gifs": ["https://media.tenor.com/SiL8iSajNNQAAAAi/hi.gif"],
     },
+    "засосать": {
+        "aliases": ["засосать", "!засосать" "/засосать"],
+        "target_text": "🔥 <b>{sender}</b> нежно засосал <b>{target}</b>!",
+        "solo_text": "🔥 <b>{sender}</b> засосал подушку...",
+        "gifs": ["https://media1.tenor.com/m/x6ZBFWqjtAoAAAAC/kiss-anime-couple-kiss-anime.gif],
+    },
 }
 
 # 🛠 Базы данных в памяти
