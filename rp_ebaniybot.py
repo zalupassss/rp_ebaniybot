@@ -73,7 +73,7 @@ RP_COMMANDS = {
 CHAT_CUSTOM_RP = {}        # {chat_id: {command_name: data_dict}}
 USER_ADDING_STATE = {}     # {user_id: chat_id}
 USERS_ECONOMY = {}         # {user_id: data_dict}
-CROCODILE_GAMES = {}       # {chat_id: {"display_word": "...", "answers": [...], "host_id": 123456}}
+CROCODILE_GAMES = {}       # {chat_id: {"mode": "classic/games", "display_word": "...", "answers": [...], "host_id": 123, "host_name": "..."}}
 
 # 🐊 Классическая база слов
 CROCODILE_WORDS = [
@@ -206,7 +206,6 @@ GAME_WORDS = [
     {"display": "Crossout", "answers": ["crossout", "кроссаут"]},
     {"display": "Point Blank", "answers": ["point blank", "поинт бланк", "пб"]},
     {"display": "Warface", "answers": ["warface", "варфейс", "варфак"]},
-    {"display": "Valorant", "answers": ["valorant", "валорант"]},
     {"display": "Tom Clancy's Rainbow Six Siege", "answers": ["rainbow six siege", "радуга", "сидж", "r6s", "rainbow six"]},
     {"display": "Don't Starve", "answers": ["don't starve", "dont starve", "донт старв"]},
     {"display": "Factorio", "answers": ["factorio", "факторио"]},
@@ -240,8 +239,8 @@ GAME_WORDS = [
     {"display": "Shadow Fight 2", "answers": ["shadow fight 2", "шедоу файт 2", "бой с тенью 2"]},
     {"display": "Hill Climb Racing", "answers": ["hill climb racing", "хилл клаймб ресинг", "машинки"]},
     {"display": "Doodle Jump", "answers": ["doodle jump", "дудл джамп"]},
-    {"display": "Pac-Man", "answers": ["pac-man", "pacman", "пакман"]}
-    ,
+    {"display": "Pac-Man", "answers": ["pac-man", "pacman", "пакман"]},
+
     # 141 - 150
     {"display": "Tetris", "answers": ["tetris", "тетрис"]},
     {"display": "Sonic the Hedgehog", "answers": ["sonic", "соник"]},
@@ -249,7 +248,7 @@ GAME_WORDS = [
     {"display": "The Legend of Zelda: Breath of the Wild", "answers": ["zelda", "зельда", "botw"]},
     {"display": "Overcooked!", "answers": ["overcooked", "оверкукед"]},
     {"display": "Keep Talking and Nobody Explodes", "answers": ["keep talking and nobody explodes", "бомба"]},
-    {"display": "Satisfactor", "answers": ["satisfactory", "сатисфактори"]},
+    {"display": "Satisfactory", "answers": ["satisfactory", "сатисфактори"]},
     {"display": "Deep Rock Galactic", "answers": ["deep rock galactic", "дип рок галактик", "дрг", "drg"]},
     {"display": "Crossy Road", "answers": ["crossy road", "кросси роуд"]},
     {"display": "Vampire Survivors", "answers": ["vampire survivors", "вампир сурвайворс"]}
@@ -289,14 +288,54 @@ def update_passive_coins(u_data):
 
 
 # ==========================================
-# МЕНЮ ВЫБОРА РЕЖИМА ИГРЫ
+# ЛОГИКА И МЕНЮ ИГРЫ КРОКОДИЛ
 # ==========================================
+
+def generate_word(mode):
+    if mode == "classic":
+        selected_word = random.choice(CROCODILE_WORDS)
+        return selected_word.capitalize(), [selected_word.lower()]
+    else:
+        game_item = random.choice(GAME_WORDS)
+        return game_item["display"], game_item["answers"]
+
+def send_croc_round_message(chat_id, host_id, host_name, mode, prefix_text=""):
+    display_word, answers = generate_word(mode)
+    
+    CROCODILE_GAMES[chat_id] = {
+        "mode": mode,
+        "display_word": display_word,
+        "answers": answers,
+        "host_id": host_id,
+        "host_name": host_name
+    }
+
+    mode_title = "🐊 Классический Крокодил" if mode == "classic" else "🎮 Отгадай игру"
+
+    markup = InlineKeyboardMarkup(row_width=2)
+    markup.add(
+        InlineKeyboardButton("👀 Загаданное слово", callback_data="croc_show_word"),
+        InlineKeyboardButton("🔄 Поменять слово", callback_data="croc_skip_word"),
+        InlineKeyboardButton("🔀 Сменить режим", callback_data="croc_change_mode")
+    )
+
+    msg_text = (
+        f"{prefix_text}"
+        f"🎯 **Новый раунд ({mode_title})!**\n\n"
+        f"👑 Ведущий: **{host_name}**\n\n"
+        f"Ведущий, жми на кнопку ниже, смотри слово и объясняй его чату!\n"
+        f"Чтобы остановить игру, напишите `стоп` или `сдаемся`."
+    )
+
+    bot.send_message(chat_id, msg_text, reply_markup=markup, parse_mode="Markdown")
+
 
 @bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in ["крокодил", "игры", "игра"])
 def show_game_menu(message):
     chat_id = message.chat.id
     if chat_id in CROCODILE_GAMES:
-        bot.send_message(chat_id, "🐊 Игра уже идет! Чтобы сдаться, напишите `сдаемся`.", parse_mode="Markdown")
+        game = CROCODILE_GAMES[chat_id]
+        bot.send_message(chat_id, f"🐊 Игра уже идет! Ведущий: **{game['host_name']}**.\nЧтобы закончить, напишите `стоп`.", parse_mode="Markdown")
         return
 
     markup = InlineKeyboardMarkup(row_width=1)
@@ -317,43 +356,15 @@ def show_game_menu(message):
 @bot.callback_query_handler(func=lambda call: call.data.startswith("start_mode_"))
 def start_selected_game_mode(call):
     chat_id = call.message.chat.id
-    user_id = call.from_user.id
+    user = call.from_user
     mode = call.data.replace("start_mode_", "", 1)
 
     if chat_id in CROCODILE_GAMES:
-        bot.answer_callback_query(call.id, "Игра уже запущенa!", show_alert=True)
+        bot.answer_callback_query(call.id, "Игра уже запущена!", show_alert=True)
         return
 
-    if mode == "classic":
-        selected_word = random.choice(CROCODILE_WORDS)
-        display_word = selected_word.capitalize()
-        answers = [selected_word.lower()]
-        mode_title = "🐊 Классический Крокодил"
-    else:
-        game_item = random.choice(GAME_WORDS)
-        display_word = game_item["display"]
-        answers = game_item["answers"]
-        mode_title = "🎮 Отгадай игру"
-
-    CROCODILE_GAMES[chat_id] = {
-        "display_word": display_word,
-        "answers": answers,
-        "host_id": user_id
-    }
-
-    markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("👀 Посмотреть загаданное (только ведущий)", callback_data="croc_show_word"))
-
-    bot.edit_message_text(
-        f"🎉 **Запущена игра: {mode_title}!**\n\n"
-        f"👑 Ведущий: **{call.from_user.first_name}**\n"
-        f"Ведущий должен объяснить загаданное, не называя его напрямую, а остальные — угадать в чате!\n\n"
-        f"Устали гадать? Напишите `сдаемся`.",
-        chat_id,
-        call.message.message_id,
-        reply_markup=markup,
-        parse_mode="Markdown"
-    )
+    bot.delete_message(chat_id, call.message.message_id)
+    send_croc_round_message(chat_id, user.id, user.first_name, mode, "🎉 **Игра запущенa!**\n\n")
 
 @bot.callback_query_handler(func=lambda call: call.data == "croc_show_word")
 def croc_show_word(call):
@@ -364,10 +375,51 @@ def croc_show_word(call):
         
     game = CROCODILE_GAMES[chat_id]
     if call.from_user.id != game["host_id"]:
-        bot.answer_callback_query(call.id, "Эй! Ты не ведущий, тебе смотреть нельзя! 😡", show_alert=True)
+        bot.answer_callback_query(call.id, f"Эй! Ты не ведущий, тебе смотреть нельзя! Ведущий: {game['host_name']} 😡", show_alert=True)
         return
         
     bot.answer_callback_query(call.id, f"Твоя цель:\n\n{game['display_word'].upper()}\n\nОбъясни это остальным!", show_alert=True)
+
+@bot.callback_query_handler(func=lambda call: call.data == "croc_skip_word")
+def croc_skip_word(call):
+    chat_id = call.message.chat.id
+    if chat_id not in CROCODILE_GAMES:
+        bot.answer_callback_query(call.id, "Игра не активна!", show_alert=True)
+        return
+
+    game = CROCODILE_GAMES[chat_id]
+    if call.from_user.id != game["host_id"]:
+        bot.answer_callback_query(call.id, "Только ведущий может менять слово!", show_alert=True)
+        return
+
+    display_word, answers = generate_word(game["mode"])
+    game["display_word"] = display_word
+    game["answers"] = answers
+    
+    bot.answer_callback_query(call.id, f"Новое слово выбрано! Нажми 'Загаданное слово', чтобы узнать его.", show_alert=True)
+    bot.send_message(chat_id, f"🔄 **{game['host_name']}** поменял(а) слово! Отгадываем заново!", parse_mode="Markdown")
+
+@bot.callback_query_handler(func=lambda call: call.data == "croc_change_mode")
+def croc_change_mode(call):
+    chat_id = call.message.chat.id
+    if chat_id not in CROCODILE_GAMES:
+        bot.answer_callback_query(call.id, "Игра не активна!", show_alert=True)
+        return
+
+    game = CROCODILE_GAMES[chat_id]
+    if call.from_user.id != game["host_id"]:
+        bot.answer_callback_query(call.id, "Только ведущий может сменить режим!", show_alert=True)
+        return
+
+    new_mode = "games" if game["mode"] == "classic" else "classic"
+    display_word, answers = generate_word(new_mode)
+    game["mode"] = new_mode
+    game["display_word"] = display_word
+    game["answers"] = answers
+
+    mode_title = "🎮 Отгадай игру" if new_mode == "games" else "🐊 Классический Крокодил"
+    bot.answer_callback_query(call.id, f"Режим изменен на: {mode_title}", show_alert=True)
+    bot.send_message(chat_id, f"🔀 **{game['host_name']}** сменил(а) режим на **{mode_title}**! Слово обновлено.", parse_mode="Markdown")
 
 
 # ==========================================
@@ -697,7 +749,7 @@ def handle_rp(message):
         bot.send_message(message.chat.id, text=text, parse_mode="HTML", reply_to_message_id=message.message_id)
 
 # ==========================================
-# ОБЩИЙ ОБРАБОТЧИК (Проверка ответов в игре + Пассивный фарм)
+# ОБЩИЙ ОБРАБОТЧИК (Проверка ответов в игре + Авто-смена ведущего)
 # ==========================================
 @bot.message_handler(func=lambda m: True)
 def handle_all_messages(message):
@@ -712,14 +764,14 @@ def handle_all_messages(message):
     u_data = get_user_data(user_id)
     update_passive_coins(u_data)
 
-    # 🐊 Логика проверки победы в Крокодиле / Отгадай игру
+    # 🐊 Логика проверки победы и авто-передачи очереди
     if chat_id in CROCODILE_GAMES:
         game = CROCODILE_GAMES[chat_id]
         
-        if text in ["сдаемся", "стоп крокодил"]:
+        if text in ["сдаемся", "стоп крокодил", "стоп"]:
             bot.send_message(
                 chat_id, 
-                f"😔 Вы сдались! Загаданное было: **{game['display_word'].upper()}**", 
+                f"🛑 **Игра остановлена!**\nЗагаданное было: **{game['display_word'].upper()}**", 
                 parse_mode="Markdown"
             )
             del CROCODILE_GAMES[chat_id]
@@ -729,14 +781,17 @@ def handle_all_messages(message):
             else:
                 reward = 100
                 u_data["coins"] += reward
-                bot.send_message(
-                    chat_id,
+                current_mode = game["mode"]
+                
+                win_text = (
                     f"🎉 **{message.from_user.first_name}** угадал(а) **{game['display_word'].upper()}**!\n"
-                    f"Награда: `{reward} некокойнов` 🪙",
-                    parse_mode="Markdown",
-                    reply_to_message_id=message.message_id
+                    f"Награда: `{reward} некокойнов` 🪙\n"
+                    f"🏆 Теперь **{message.from_user.first_name}** становится новым ведущим!\n\n"
                 )
+
+                # Удаляем старый раунд и мгновенно запускаем новый для угадавшего
                 del CROCODILE_GAMES[chat_id]
+                send_croc_round_message(chat_id, user_id, message.from_user.first_name, current_mode, prefix_text=win_text)
 
 # ==========================================
 # ЗАПУСК БОТА И ВЕБ-СЕРВЕРА
