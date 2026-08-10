@@ -18,6 +18,7 @@ def home():
     return "Bot is active!"
 
 # 📚 База стандартных РП-команд
+# 📚 База стандартных РП-команд
 RP_COMMANDS = {
     "поцеловать": {
         "aliases": ["поцеловать", "/kiss", "!поцеловать", "поцелуй"],
@@ -48,6 +49,18 @@ RP_COMMANDS = {
         "target_text": "🍲 <b>{sender}</b> вкусно кормит <b>{target}</b>! Теперь кто-то сыт и доволен 😊",
         "solo_text": "🍲 <b>{sender}</b> вкусно кушает! Приятного аппетита 😋",
         "gifs": ["https://media1.tenor.com/m/y_xVq9Ea-YUAAAAC/anime-acchi-kocchi.gif"],
+    },
+    "оставить засос": {
+        "aliases": ["оставить засос", "засос", "!засос"],
+        "target_text": "💋 <b>{sender}</b> оставляет страстный засос на шее <b>{target}</b>!",
+        "solo_text": "💋 <b>{sender}</b> пытается оставить засос... но на ком?",
+        "gifs": ["https://media1.tenor.com/m/6yHnO-XyV0AAAAAC/anime-kiss-neck.gif"],
+    },
+    "флиртовать": {
+        "aliases": ["флиртовать", "флирт", "/flirt", "!флирт"],
+        "target_text": "😏 <b>{sender}</b> игриво флиртует с <b>{target}</b>~",
+        "solo_text": "😏 <b>{sender}</b> тренирует навыки флирта перед зеркалом!",
+        "gifs": ["https://media1.tenor.com/m/y2M2gHl3vKwAAAAC/anime-flirt.gif"],
     },
 }
 
