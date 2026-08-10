@@ -50,7 +50,7 @@ RP_COMMANDS = {
         "gifs": ["https://media1.tenor.com/m/gIbE9pZ7raYAAAAC/wataten-watashi-ni-tenshi-ga-maiorita.gif"],
     },
     "оставить засос": {
-        "aliases": ["оставить засос", "засос", "!засос"],
+        "aliases": ["оставить засос", "оставить_засос", "!оставить засос"],
         "target_text": "💋 <b>{sender}</b> оставляет страстный засос на шее <b>{target}</b>!",
         "solo_text": "💋 <b>{sender}</b> пытается оставить засос... но на ком?",
         "gifs": ["https://media1.tenor.com/m/5FOgNEcoaYMAAAAC/neck-kisses.gif"],
@@ -810,3 +810,5 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Ошибка бота: {e}")
             time.sleep(5)
+            
+            
