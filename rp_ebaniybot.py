@@ -73,41 +73,186 @@ RP_COMMANDS = {
 CHAT_CUSTOM_RP = {}        # {chat_id: {command_name: data_dict}}
 USER_ADDING_STATE = {}     # {user_id: chat_id}
 USERS_ECONOMY = {}         # {user_id: data_dict}
-CROCODILE_GAMES = {}       # {chat_id: {"word": "...", "host_id": 123456}}
+CROCODILE_GAMES = {}       # {chat_id: {"display_word": "...", "answers": [...], "host_id": 123456}}
 
-# 🐊 Огромная база слов для игры "Крокодил"
+# 🐊 Классическая база слов
 CROCODILE_WORDS = [
-    # Животные
     "собака", "кошка", "слон", "жираф", "бегемот", "носорог", "тигр", "лев", "леопард", "гепард", "рысь", 
     "волк", "медведь", "лиса", "заяц", "кролик", "акула", "дельфин", "кит", "тюлень", "пингвин", "страус", 
-    "павлин", "орел", "сова", "ворона", "змея", "лягушка", "крокодил", "ящерица", "паук", "бабочка", "муха", 
-    "комар", "пчела", "оса", "утконос", "енот", "хомяк", "попугай", "черепаха", "улитка",
-    # Профессии
-    "врач", "учитель", "повар", "программист", "дизайнер", "инженер", "архитектор", "строитель", "электрик", 
-    "сантехник", "актер", "певец", "музыкант", "художник", "писатель", "журналист", "фотограф", "блогер", 
-    "полицейский", "пожарный", "космонавт", "пилот", "капитан", "водитель", "таксист", "курьер", "стоматолог",
-    # Еда
-    "пицца", "суши", "бургер", "пельмени", "борщ", "суп", "макароны", "картошка", "сыр", "колбаса", "сосиски", 
-    "хлеб", "масло", "молоко", "сметана", "творог", "йогурт", "шоколад", "конфета", "торт", "мороженое", 
-    "печенье", "яблоко", "банан", "апельсин", "мандарин", "лимон", "арбуз", "дыня", "клубника", "малина", 
-    "виноград", "шашлык", "шаурма",
-    # Предметы
-    "стол", "стул", "диван", "кровать", "шкаф", "телевизор", "компьютер", "ноутбук", "телефон", "смартфон", 
-    "планшет", "наушники", "микрофон", "камера", "часы", "очки", "зеркало", "ковер", "лампа", "люстра", 
-    "чайник", "кастрюля", "сковорода", "тарелка", "ложка", "вилка", "нож", "стакан", "кружка", "бутылка", 
-    "рюкзак", "сумка", "кошелек", "зонт", "пылесос", "утюг", "книга", "тетрадь", "ручка", "карандаш",
-    # Транспорт
-    "автомобиль", "машина", "автобус", "троллейбус", "трамвай", "поезд", "метро", "самолет", "вертолет", 
-    "корабль", "лодка", "яхта", "катер", "велосипед", "самокат", "мотоцикл", "мопед", "трактор", "танк",
-    # Природа и Места
-    "дерево", "цветок", "трава", "куст", "лес", "поле", "луг", "гора", "скала", "река", "озеро", "море", 
-    "океан", "пляж", "остров", "пустыня", "город", "деревня", "улица", "дом", "квартира", "подъезд", 
-    "крыша", "окно", "дверь", "балкон", "космос", "планета", "звезда", "луна", "солнце",
-    # Абстрактные понятия, разное и современное
-    "любовь", "дружба", "счастье", "радость", "грусть", "злость", "страх", "удивление", "магия", "волшебство", 
-    "наука", "искусство", "музыка", "кино", "театр", "спорт", "футбол", "баскетбол", "волейбол", "теннис", 
-    "хоккей", "шахматы", "интернет", "сайт", "игра", "программа", "вирус", "пароль", "нейросеть", "стрим", 
-    "донат", "крипта", "фриланс", "хайп", "краш", "кринж", "вайб", "мем", "аниме", "манга"
+    "врач", "учитель", "повар", "программист", "строитель", "актер", "певец", "космонавт", "пилот", 
+    "пицца", "суши", "бургер", "пельмени", "борщ", "шоколад", "мороженое", "арбуз", "шаурма", 
+    "телевизор", "компьютер", "ноутбук", "телефон", "наушники", "микрофон", "часы", "очки", "рюкзак", 
+    "автомобиль", "самолет", "вертолет", "корабль", "велосипед", "самокат", "мотоцикл", "трактор", 
+    "любовь", "дружба", "магия", "интернет", "нейросеть", "стрим", "донат", "кринж", "вайб", "мем", "аниме"
+]
+
+# 🎮 База из 150 видеоигр
+GAME_WORDS = [
+    # 1 - 20
+    {"display": "League of Legends", "answers": ["league of legends", "лига легенд", "лол", "lol"]},
+    {"display": "Zenless Zone Zero", "answers": ["zenless zone zero", "zzz", "ззз"]},
+    {"display": "Minecraft", "answers": ["minecraft", "майнкрафт", "майн"]},
+    {"display": "Dota 2", "answers": ["dota 2", "дота 2", "дота", "dota"]},
+    {"display": "Counter-Strike", "answers": ["counter-strike", "counter strike", "cs:go", "cs2", "cs", "кс", "ксго"]},
+    {"display": "Genshin Impact", "answers": ["genshin impact", "геншин", "геншин импакт"]},
+    {"display": "Honkai: Star Rail", "answers": ["honkai star rail", "хср", "hsr", "хонкай стар рейл", "стар рейл"]},
+    {"display": "Brawl Stars", "answers": ["brawl stars", "бравл старс", "бравл"]},
+    {"display": "Roblox", "answers": ["roblox", "роблокс"]},
+    {"display": "The Witcher 3: Wild Hunt", "answers": ["ведьмак 3", "ведьмак", "witcher 3", "witcher", "ведьмак 3 дикая охота"]},
+    {"display": "GTA 5", "answers": ["gta 5", "гта 5", "gta", "гта", "gta v", "гта в"]},
+    {"display": "Cyberpunk 2077", "answers": ["cyberpunk 2077", "киберпанк 2077", "cyberpunk", "киберпанк"]},
+    {"display": "Undertale", "answers": ["undertale", "андертейл"]},
+    {"display": "Deltarune", "answers": ["deltarune", "дельтарун"]},
+    {"display": "S.T.A.L.K.E.R.: Shadow of Chernobyl", "answers": ["stalker", "сталкер", "s.t.a.l.k.e.r.", "сталкер тень чернобыля"]},
+    {"display": "Terraria", "answers": ["terraria", "террария"]},
+    {"display": "Five Nights at Freddy's", "answers": ["fnaf", "фнаф", "five nights at freddy's", "пять ночей с фредди"]},
+    {"display": "Valorant", "answers": ["valorant", "валорант"]},
+    {"display": "Overwatch", "answers": ["overwatch", "овервотч", "овер"]},
+    {"display": "Fallout 4", "answers": ["fallout 4", "фоллаут 4", "fallout", "фоллаут"]},
+
+    # 21 - 40
+    {"display": "The Elder Scrolls V: Skyrim", "answers": ["skyrim", "скарим", "скайрим", "tes 5", "tes v"]},
+    {"display": "Red Dead Redemption 2", "answers": ["red dead redemption 2", "rdr 2", "рдр 2", "rdr2", "рдр2"]},
+    {"display": "Dark Souls", "answers": ["dark souls", "дарк соулс", "ДС", "ds"]},
+    {"display": "Elden Ring", "answers": ["elden ring", "елден ринг", "эSubн ринг", "эльден ринг"]},
+    {"display": "Bloodborne", "answers": ["bloodborne", "бладборн"]},
+    {"display": "Sekiro: Shadows Die Twice", "answers": ["sekiro", "секиро"]},
+    {"display": "Hollow Knight", "answers": ["hollow knight", "холоу найт", "холлоу найт"]},
+    {"display": "Portal 2", "answers": ["portal 2", "портал 2", "portal", "портал"]},
+    {"display": "Half-Life 2", "answers": ["half-life 2", "half life 2", "халф лайф 2", "халфа 2", "half life", "халфа"]},
+    {"display": "Apex Legends", "answers": ["apex legends", "апекс легендс", "апекс", "apex"]},
+    {"display": "PUBG", "answers": ["pubg", "пабг", "пубг"]},
+    {"display": "Rust", "answers": ["rust", "раст"]},
+    {"display": "Dead by Daylight", "answers": ["dead by daylight", "dbd", "дбд"]},
+    {"display": "Geometry Dash", "answers": ["geometry dash", "геометри даш", "гд", "gd"]},
+    {"display": "Phasmophobia", "answers": ["phasmophobia", "фазмофобия", "фазма"]},
+    {"display": "Lethal Company", "answers": ["lethal company", "летал компани"]},
+    {"display": "Cuphead", "answers": ["cuphead", "капхед"]},
+    {"display": "Dead Cells", "answers": ["dead cells", "дед селлс", "дед селс"]},
+    {"display": "Hotline Miami", "answers": ["hotline miami", "хотлайн майами", "хотлайн"]},
+    {"display": "The Binding of Isaac", "answers": ["the binding of isaac", "binding of isaac", "айзек", "isaac"]},
+
+    # 41 - 60
+    {"display": "Subnautica", "answers": ["subnautica", "сабнатика", "субнатика"]},
+    {"display": "Outlast", "answers": ["outlast", "аутласт"]},
+    {"display": "Amnesia: The Dark Descent", "answers": ["amnesia", "амнезия"]},
+    {"display": "Resident Evil 4", "answers": ["resident evil 4", "обитель зла 4", "резидент ивил 4", "re4", "re 4"]},
+    {"display": "Silent Hill 2", "answers": ["silent hill 2", "сайлент хилл 2", "silent hill", "сайлент хилл"]},
+    {"display": "Detroit: Become Human", "answers": ["detroit become human", "детройт бикам хьюман", "детройт"]},
+    {"display": "Life is Strange", "answers": ["life is strange", "лайф из стрендж", "лис"]},
+    {"display": "The Last of Us", "answers": ["the last of us", "одну из нас", "одни из нас", "tlou", "тлоу"]},
+    {"display": "God of War", "answers": ["god of war", "год оф вор", "бог войны", "gow"]},
+    {"display": "Assassin's Creed", "answers": ["assassin's creed", "assassins creed", "ассасин крид", "ассасин"]},
+    {"display": "Far Cry 3", "answers": ["far cry 3", "фар край 3", "far cry", "фар край"]},
+    {"display": "Mafia 2", "answers": ["mafia 2", "мафия 2", "mafia", "мафия"]},
+    {"display": "Mass Effect", "answers": ["mass effect", "масс эффект"]},
+    {"display": "S.T.A.L.K.E.R. 2: Heart of Chornobyl", "answers": ["stalker 2", "сталкер 2", "s.t.a.l.k.e.r. 2"]},
+    {"display": "Metro 2033", "answers": ["metro 2033", "метро 2033", "метро"]},
+    {"display": "World of Tanks", "answers": ["world of tanks", "мир танков", "танки", "wot", "вот"]},
+    {"display": "War Thunder", "answers": ["war thunder", "вар тандер", "тундра"]},
+    {"display": "Clash Royale", "answers": ["clash royale", "клеш рояль", "клешрояль"]},
+    {"display": "Clash of Clans", "answers": ["clash of clans", "клеш оф кленс", "кок"]},
+    {"display": "Standoff 2", "answers": ["standoff 2", "стандофф 2", "стандофф", "стандоф"]},
+
+    # 61 - 80
+    {"display": "Mobile Legends: Bang Bang", "answers": ["mobile legends", "млбб", "mlbb", "мобил легендс"]},
+    {"display": "Garry's Mod", "answers": ["garry's mod", "garrys mod", "гаррис мод", "гмод", "gmod"]},
+    {"display": "Left 4 Dead 2", "answers": ["left 4 dead 2", "лефт 4 дед 2", "л4д2", "l4d2", "left 4 dead"]},
+    {"display": "Team Fortress 2", "answers": ["team fortress 2", "тим фортресс 2", "тф2", "tf2"]},
+    {"display": "Payday 2", "answers": ["payday 2", "пейдей 2", "пайдей 2", "payday"]},
+    {"display": "Among Us", "answers": ["among us", "амонг ас", "амонгас"]},
+    {"display": "Fall Guys", "answers": ["fall guys", "фол гайс"]},
+    {"display": "Rocket League", "answers": ["rocket league", "рокет лига", "рокет лиг"]},
+    {"display": "Sea of Thieves", "answers": ["sea of thieves", "си оф сивс", "море воров"]},
+    {"display": "Monster Hunter: World", "answers": ["monster hunter world", "монстер хантер"]},
+    {"display": "Devil May Cry 5", "answers": ["devil may cry 5", "девил май край 5", "dmc 5", "дмк 5", "dmc"]},
+    {"display": "Bayonetta", "answers": ["bayonetta", "байонетта"]},
+    {"display": "Nier: Automata", "answers": ["nier automata", "нир автомата", "ниер автомата"]},
+    {"display": "Persona 5", "answers": ["persona 5", "персона 5", "persona", "персона"]},
+    {"display": "Yakuza 0", "answers": ["yakuza 0", "якудза 0", "yakuza", "якудза"]},
+    {"display": "Death Stranding", "answers": ["death stranding", "дет стрендинг", "симулятор курьера"]},
+    {"display": "Control", "answers": ["control", "контрол"]},
+    {"display": "Alan Wake", "answers": ["alan wake", "алан вейк"]},
+    {"display": "Quantum Break", "answers": ["quantum break", "квантум брейк"]},
+    {"display": "Dishonored", "answers": ["dishonored", "дисхоноред"]},
+
+    # 81 - 100
+    {"display": "Bioshock", "answers": ["bioshock", "биошок"]},
+    {"display": "Hitman", "answers": ["hitman", "хитман"]},
+    {"display": "Tomb Raider", "answers": ["tomb raider", "томб райдер", "лара крофт"]},
+    {"display": "Uncharted", "answers": ["uncharted", "анчартед"]},
+    {"display": "Heavy Rain", "answers": ["heavy rain", "хеви рейн"]},
+    {"display": "Beyond: Two Souls", "answers": ["beyond two souls", "за гранью две души"]},
+    {"display": "Until Dawn", "answers": ["until dawn", "доживи до рассвета", "антил дон"]},
+    {"display": "The Quarry", "answers": ["the quarry", "куорри", "кворри"]},
+    {"display": "Poppy Playtime", "answers": ["poppy playtime", "поппи плейтайм", "хаги ваги"]},
+    {"display": "Bendy and the Ink Machine", "answers": ["bendy and the ink machine", "бенди", "bendy"]},
+    {"display": "Slender: The Eight Pages", "answers": ["slender", "слендер", "слендермен"]},
+    {"display": "Hello Neighbor", "answers": ["hello neighbor", "привет сосед", "сосед"]},
+    {"display": "Little Nightmares", "answers": ["little nightmares", "литл найтмерс", "маленькие кошмары"]},
+    {"display": "Limbo", "answers": ["limbo", "лимбо"]},
+    {"display": "Inside", "answers": ["inside", "инсайд"]},
+    {"display": "Celeste", "answers": ["celeste", "селеста"]},
+    {"display": "Hades", "answers": ["hades", "хадес", "аид"]},
+    {"display": "Katana Zero", "answers": ["katana zero", "катана зеро"]},
+    {"display": "Omori", "answers": ["omori", "омори"]},
+    {"display": "Slay the Spire", "answers": ["slay the spire", "слей зе спайр"]},
+
+    # 101 - 120
+    {"display": "Palworld", "answers": ["palworld", "палворлд", "палы"]},
+    {"display": "Helldivers 2", "answers": ["helldivers 2", "хеллдайверс 2", "хелдайверс 2"]},
+    {"display": "Escape from Tarkov", "answers": ["escape from tarkov", "тарков", "eft"]},
+    {"display": "Warframe", "answers": ["warframe", "варфрейм"]},
+    {"display": "Crossout", "answers": ["crossout", "кроссаут"]},
+    {"display": "Point Blank", "answers": ["point blank", "поинт бланк", "пб"]},
+    {"display": "Warface", "answers": ["warface", "варфейс", "варфак"]},
+    {"display": "Valorant", "answers": ["valorant", "валорант"]},
+    {"display": "Tom Clancy's Rainbow Six Siege", "answers": ["rainbow six siege", "радуга", "сидж", "r6s", "rainbow six"]},
+    {"display": "Don't Starve", "answers": ["don't starve", "dont starve", "донт старв"]},
+    {"display": "Factorio", "answers": ["factorio", "факторио"]},
+    {"display": "RimWorld", "answers": ["rimworld", "римворлд"]},
+    {"display": "The Sims 4", "answers": ["the sims 4", "симс 4", "sims 4", "симс"]},
+    {"display": "Heroes of Might and Magic III", "answers": ["герои 3", "heroes 3", "герои меча и магии 3", "homm 3"]},
+    {"display": "Sid Meier's Civilization VI", "answers": ["civilization 6", "цивилизация 6", "цива 6", "цива"]},
+    {"display": "Hearts of Iron IV", "answers": ["hearts of iron 4", "hoi4", "хои4", "день победы 4"]},
+    {"display": "Europa Universalis IV", "answers": ["europa universalis 4", "европа 4", "eu4"]},
+    {"display": "Stellaris", "answers": ["stellaris", "стелларис"]},
+    {"display": "Crusader Kings III", "answers": ["crusader kings 3", "крестоносцы 3", "ck3"]},
+    {"display": "Mount & Blade II: Bannerlord", "answers": ["mount and blade", "баннерлорд", "баннерлорд 2", "маунт и блейд"]},
+
+    # 121 - 140
+    {"display": "Stardew Valley", "answers": ["stardew valley", "стардью валли", "стардью"]},
+    {"display": "Animal Crossing: New Horizons", "answers": ["animal crossing", "энимал кроссинг"]},
+    {"display": "Cities: Skylines", "answers": ["cities skylines", "ситис скайлайнс"]},
+    {"display": "Euro Truck Simulator 2", "answers": ["euro truck simulator 2", "ets 2", "етс 2", "евро трек симулятор"]},
+    {"display": "Spore", "answers": ["spore", "спор"]},
+    {"display": "Slime Rancher", "answers": ["slime rancher", "слайм ранчер"]},
+    {"display": "Untitled Goose Game", "answers": ["untitled goose game", "игра про гуся", "гусь"]},
+    {"display": "Goat Simulator", "answers": ["goat simulator", "симулятор козла"]},
+    {"display": "Plague Inc.", "answers": ["plague inc", "плаг инк", "чума"]},
+    {"display": "Flappy Bird", "answers": ["flappy bird", "флеппи берд"]},
+    {"display": "Subway Surfers", "answers": ["subway surfers", "сабвей сёрф", "сабвей сурф", "сабвей"]},
+    {"display": "Fruit Ninja", "answers": ["fruit ninja", "фрут ниндзя"]},
+    {"display": "Angry Birds", "answers": ["angry birds", "энгри бердс", "злые птички"]},
+    {"display": "Plants vs. Zombies", "answers": ["plants vs zombies", "растения против зомби", "pvz", "пвз"]},
+    {"display": "Pou", "answers": ["pou", "поу"]},
+    {"display": "Talking Tom", "answers": ["talking tom", "говорящий том", "том"]},
+    {"display": "Shadow Fight 2", "answers": ["shadow fight 2", "шедоу файт 2", "бой с тенью 2"]},
+    {"display": "Hill Climb Racing", "answers": ["hill climb racing", "хилл клаймб ресинг", "машинки"]},
+    {"display": "Doodle Jump", "answers": ["doodle jump", "дудл джамп"]},
+    {"display": "Pac-Man", "answers": ["pac-man", "pacman", "пакман"]}
+    ,
+    # 141 - 150
+    {"display": "Tetris", "answers": ["tetris", "тетрис"]},
+    {"display": "Sonic the Hedgehog", "answers": ["sonic", "соник"]},
+    {"display": "Super Mario Bros.", "answers": ["super mario", "mario", "марио", "супер марио"]},
+    {"display": "The Legend of Zelda: Breath of the Wild", "answers": ["zelda", "зельда", "botw"]},
+    {"display": "Overcooked!", "answers": ["overcooked", "оверкукед"]},
+    {"display": "Keep Talking and Nobody Explodes", "answers": ["keep talking and nobody explodes", "бомба"]},
+    {"display": "Satisfactor", "answers": ["satisfactory", "сатисфактори"]},
+    {"display": "Deep Rock Galactic", "answers": ["deep rock galactic", "дип рок галактик", "дрг", "drg"]},
+    {"display": "Crossy Road", "answers": ["crossy road", "кросси роуд"]},
+    {"display": "Vampire Survivors", "answers": ["vampire survivors", "вампир сурвайворс"]}
 ]
 
 SHOP_ITEMS = {
@@ -121,17 +266,16 @@ def get_user_data(user_id):
     if user_id not in USERS_ECONOMY:
         USERS_ECONOMY[user_id] = {
             "coins": 100,
-            "inventory": [],        # купленные товары
-            "active_effects": [],   # включенные эффекты
-            "purchase_cooldowns": {}, # {item_key: timestamp последнего приобретения}
-            "ramen_expires_at": 0,  # таймер окончания рамена
+            "inventory": [],
+            "active_effects": [],
+            "purchase_cooldowns": {},
+            "ramen_expires_at": 0,
             "last_passive_check": time.time(),
             "stats": {"hugs": 0, "kisses": 0, "actions": 0},
             "last_daily": 0
         }
     return USERS_ECONOMY[user_id]
 
-# Расчет пассивного дохода от рамена
 def update_passive_coins(u_data):
     now = time.time()
     if u_data["ramen_expires_at"] > now:
@@ -145,33 +289,68 @@ def update_passive_coins(u_data):
 
 
 # ==========================================
-# ИГРА "КРОКОДИЛ"
+# МЕНЮ ВЫБОРА РЕЖИМА ИГРЫ
 # ==========================================
 
-@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() == "крокодил")
-def start_crocodile(message):
+@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in ["крокодил", "игры", "игра"])
+def show_game_menu(message):
     chat_id = message.chat.id
-    user_id = message.from_user.id
-    
     if chat_id in CROCODILE_GAMES:
         bot.send_message(chat_id, "🐊 Игра уже идет! Чтобы сдаться, напишите `сдаемся`.", parse_mode="Markdown")
         return
-        
-    word = random.choice(CROCODILE_WORDS)
-    CROCODILE_GAMES[chat_id] = {
-        "word": word,
-        "host_id": user_id
-    }
-    
-    markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("👀 Посмотреть слово (только ведущий)", callback_data="croc_show_word"))
-    
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        InlineKeyboardButton("🐊 Классический Крокодил", callback_data="start_mode_classic"),
+        InlineKeyboardButton(f"🎮 Отгадай игру ({len(GAME_WORDS)} тайтлов!)", callback_data="start_mode_games")
+    )
+
     bot.send_message(
         chat_id,
-        f"🐊 **Игра Крокодил началась!**\n\n"
-        f"Ведущий: **{message.from_user.first_name}**\n"
-        f"Ведущий должен объяснить слово, не называя его, а остальные угадать в чате!\n\n"
+        "🎮 **Выбери режим игры:**\n\n"
+        "• **Классический** — обычные предметы, животные и слова.\n"
+        f"• **Отгадай игру** — {len(GAME_WORDS)} популярных ПК и мобильных видеоигр!",
+        reply_markup=markup,
+        parse_mode="Markdown"
+    )
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("start_mode_"))
+def start_selected_game_mode(call):
+    chat_id = call.message.chat.id
+    user_id = call.from_user.id
+    mode = call.data.replace("start_mode_", "", 1)
+
+    if chat_id in CROCODILE_GAMES:
+        bot.answer_callback_query(call.id, "Игра уже запущенa!", show_alert=True)
+        return
+
+    if mode == "classic":
+        selected_word = random.choice(CROCODILE_WORDS)
+        display_word = selected_word.capitalize()
+        answers = [selected_word.lower()]
+        mode_title = "🐊 Классический Крокодил"
+    else:
+        game_item = random.choice(GAME_WORDS)
+        display_word = game_item["display"]
+        answers = game_item["answers"]
+        mode_title = "🎮 Отгадай игру"
+
+    CROCODILE_GAMES[chat_id] = {
+        "display_word": display_word,
+        "answers": answers,
+        "host_id": user_id
+    }
+
+    markup = InlineKeyboardMarkup()
+    markup.add(InlineKeyboardButton("👀 Посмотреть загаданное (только ведущий)", callback_data="croc_show_word"))
+
+    bot.edit_message_text(
+        f"🎉 **Запущена игра: {mode_title}!**\n\n"
+        f"👑 Ведущий: **{call.from_user.first_name}**\n"
+        f"Ведущий должен объяснить загаданное, не называя его напрямую, а остальные — угадать в чате!\n\n"
         f"Устали гадать? Напишите `сдаемся`.",
+        chat_id,
+        call.message.message_id,
         reply_markup=markup,
         parse_mode="Markdown"
     )
@@ -188,7 +367,7 @@ def croc_show_word(call):
         bot.answer_callback_query(call.id, "Эй! Ты не ведущий, тебе смотреть нельзя! 😡", show_alert=True)
         return
         
-    bot.answer_callback_query(call.id, f"Твое слово:\n\n{game['word'].upper()}\n\nОбъясни его остальным!", show_alert=True)
+    bot.answer_callback_query(call.id, f"Твоя цель:\n\n{game['display_word'].upper()}\n\nОбъясни это остальным!", show_alert=True)
 
 
 # ==========================================
@@ -456,7 +635,7 @@ def show_all_commands(message):
         "📜 **Список всех команд:**\n\n"
         "🎭 **РП-команды:** поцеловать, обнять, погладить, укусить, покормить, оставить засос, флиртовать, трахнуть\n"
         "🪙 **Экономика:** баланс, профиль, магазин, награда\n"
-        "🎮 **Игры:** крокодил\n"
+        "🎮 **Игры:** крокодил, игры\n"
         "🛠 **Кастом:** кастомрп (панель создания)"
     )
     bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_to_message_id=message.message_id)
@@ -518,7 +697,7 @@ def handle_rp(message):
         bot.send_message(message.chat.id, text=text, parse_mode="HTML", reply_to_message_id=message.message_id)
 
 # ==========================================
-# ОБЩИЙ ОБРАБОТЧИК (Крокодил + Пассивный фарм)
+# ОБЩИЙ ОБРАБОТЧИК (Проверка ответов в игре + Пассивный фарм)
 # ==========================================
 @bot.message_handler(func=lambda m: True)
 def handle_all_messages(message):
@@ -529,36 +708,35 @@ def handle_all_messages(message):
     user_id = message.from_user.id
     text = message.text.lower().strip()
     
-    # Считаем пассивный фарм для всех сообщений (если включен рамен)
+    # Пассивный фарм от рамена
     u_data = get_user_data(user_id)
     update_passive_coins(u_data)
 
-    # 🐊 Логика проверки Крокодила
+    # 🐊 Логика проверки победы в Крокодиле / Отгадай игру
     if chat_id in CROCODILE_GAMES:
         game = CROCODILE_GAMES[chat_id]
-        word = game["word"]
         
         if text in ["сдаемся", "стоп крокодил"]:
             bot.send_message(
                 chat_id, 
-                f"😔 Вы сдались! Загаданное слово было: **{word.upper()}**", 
+                f"😔 Вы сдались! Загаданное было: **{game['display_word'].upper()}**", 
                 parse_mode="Markdown"
             )
             del CROCODILE_GAMES[chat_id]
-        elif text == word:
+        elif text in game["answers"]:
             if user_id == game["host_id"]:
                 bot.send_message(chat_id, "Эй, ведущий, нельзя угадывать свое же слово! 😅", reply_to_message_id=message.message_id)
             else:
-                reward = 100 # Награда победителю
+                reward = 100
                 u_data["coins"] += reward
                 bot.send_message(
                     chat_id,
-                    f"🎉 **{message.from_user.first_name}** угадал слово **{word.upper()}**!\n"
+                    f"🎉 **{message.from_user.first_name}** угадал(а) **{game['display_word'].upper()}**!\n"
                     f"Награда: `{reward} некокойнов` 🪙",
                     parse_mode="Markdown",
                     reply_to_message_id=message.message_id
                 )
-                del CROCODILE_GAMES[chat_id] # Удаляем игру после победы
+                del CROCODILE_GAMES[chat_id]
 
 # ==========================================
 # ЗАПУСК БОТА И ВЕБ-СЕРВЕРА
@@ -568,10 +746,8 @@ def run_flask():
     app.run(host="0.0.0.0", port=port)
 
 if __name__ == "__main__":
-    # Запускаем Flask в отдельном потоке (для хостингов типа Render)
     threading.Thread(target=run_flask, daemon=True).start()
     
-    # Запускаем бота
     print("Бот запущен и работает!")
     while True:
         try:
