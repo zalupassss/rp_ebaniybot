@@ -47,7 +47,7 @@ RP_COMMANDS = {
         "aliases": ["покормить", "/feed", "!покормить", "накормить"],
         "target_text": "🍲 <b>{sender}</b> вкусно кормит <b>{target}</b>! Теперь кто-то сыт и доволен 😊",
         "solo_text": "🍲 <b>{sender}</b> вкусно кушает! Приятного аппетита 😋",
-        "gifs": ["https://media1.tenor.com/m/gIbE9pZ7raYAAAAC/wataten-watashi-ni-tenshi-ga-maiorita.gif"],
+        "gifs": ["https://media.tenor.com/gIbE9pZ7raYAAAAC/wataten-watashi-ni-tenshi-ga-maiorita.gif],
     },
     "оставить засос": {
         "aliases": ["оставить засос", "оставить_засос", "!оставить засос"],
@@ -59,7 +59,7 @@ RP_COMMANDS = {
         "aliases": ["флиртовать", "флирт", "/flirt", "!флирт"],
         "target_text": "😏 <b>{sender}</b> игриво флиртует с <b>{target}</b>~",
         "solo_text": "😏 <b>{sender}</b> тренирует навыки флирта перед зеркалом!",
-        "gifs": ["https://media1.tenor.com/m/TlFyVb6dRqkAAAAC/anime-horusultra.gif"],
+        "gifs": ["https://media.tenor.com/TlFyVb6dRqkAAAAC/anime-horusultra.gif],
     },
     "трахнуть": {
         "aliases": ["трахнуть", "выебать", "/sex", "!трахнуть"],
@@ -68,10 +68,10 @@ RP_COMMANDS = {
         "gifs": ["https://media.tenor.com/SiL8iSajNNQAAAAi/hi.gif"],
     },
     "засосать": {
-        "aliases": ["засосать", "!засосать" "/засосать"],
+        "aliases": ["засосать", "!засосать", "/засосать"],
         "target_text": "🔥 <b>{sender}</b> нежно засосал <b>{target}</b>!",
         "solo_text": "🔥 <b>{sender}</b> засосал подушку...",
-        "gifs": ["https://media1.tenor.com/m/x6ZBFWqjtAoAAAAC/kiss-anime-couple-kiss-anime.gif"],
+        "gifs": ["https://media.tenor.com/xYUjLVz6rJoAAAAC/mhel.gif"],
     },
 }
 
