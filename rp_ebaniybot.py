@@ -18,7 +18,6 @@ def home():
     return "Bot is active!"
 
 # 📚 База стандартных РП-команд
-# 📚 База стандартных РП-команд
 RP_COMMANDS = {
     "поцеловать": {
         "aliases": ["поцеловать", "/kiss", "!поцеловать", "поцелуй"],
@@ -61,7 +60,7 @@ RP_COMMANDS = {
         "target_text": "😏 <b>{sender}</b> игриво флиртует с <b>{target}</b>~",
         "solo_text": "😏 <b>{sender}</b> тренирует навыки флирта перед зеркалом!",
         "gifs": ["https://media1.tenor.com/m/TlFyVb6dRqkAAAAC/anime-horusultra.gif"],
-    }
+    },  # <--- Вот эта запятая обязательна!
     "трахнуть": {
         "aliases": ["выебать", "/sex", "!трахнуть"],
         "target_text": "🔥 <b>{sender}</b> нежно трахнул <b>{target}</b>!",
@@ -69,7 +68,6 @@ RP_COMMANDS = {
         "gifs": ["https://media.tenor.com/SiL8iSajNNQAAAAi/hi.gif"],
     },
 }
-
 # 🛠 Базы данных в памяти
 CHAT_CUSTOM_RP = {}        # {chat_id: {command_name: data_dict}}
 USER_ADDING_STATE = {}     # {user_id: chat_id}
