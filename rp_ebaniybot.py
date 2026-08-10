@@ -61,7 +61,7 @@ RP_COMMANDS = {
         "target_text": "😏 <b>{sender}</b> игриво флиртует с <b>{target}</b>~",
         "solo_text": "😏 <b>{sender}</b> тренирует навыки флирта перед зеркалом!",
         "gifs": ["https://media1.tenor.com/m/TlFyVb6dRqkAAAAC/anime-horusultra.gif"],
-    
+    }
     "трахнуть": {
         "aliases": ["выебать", "/sex", "!трахнуть"],
         "target_text": "🔥 <b>{sender}</b> нежно трахнул <b>{target}</b>!",
