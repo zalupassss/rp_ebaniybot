@@ -71,7 +71,7 @@ RP_COMMANDS = {
         "aliases": ["засосать", "!засосать" "/засосать"],
         "target_text": "🔥 <b>{sender}</b> нежно засосал <b>{target}</b>!",
         "solo_text": "🔥 <b>{sender}</b> засосал подушку...",
-        "gifs": ["https://media1.tenor.com/m/x6ZBFWqjtAoAAAAC/kiss-anime-couple-kiss-anime.gif],
+        "gifs": ["https://media1.tenor.com/m/x6ZBFWqjtAoAAAAC/kiss-anime-couple-kiss-anime.gif"],
     },
 }
 
