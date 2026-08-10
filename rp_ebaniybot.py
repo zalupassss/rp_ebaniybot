@@ -364,6 +364,15 @@ def process_new_rp(message):
 # ==========================================
 # ОБРАБОТЧИК РП КОМАНД + ФАРМ
 # ==========================================
+@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in ["команды", "помощь", "/help"])
+def show_all_commands(message):
+    text = (
+        "📜 **Список всех команд:**\n\n"
+        "🎭 **РП-команды:** поцеловать, обнять, погладить, укусить, покормить\n"
+        "🪙 **Экономика:** баланс, профиль, магазин, награда\n"
+        "🛠 **Кастом:** кастомрп (панель создания)"
+    )
+    bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_to_message_id=message.message_id)
 
 def get_rp_action(message_text, chat_id):
     if not message_text:
