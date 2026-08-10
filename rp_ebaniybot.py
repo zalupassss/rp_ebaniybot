@@ -68,6 +68,7 @@ RP_COMMANDS = {
         "gifs": ["https://media.tenor.com/SiL8iSajNNQAAAAi/hi.gif"],
     },
 }
+
 # 🛠 Базы данных в памяти
 CHAT_CUSTOM_RP = {}        # {chat_id: {command_name: data_dict}}
 USER_ADDING_STATE = {}     # {user_id: chat_id}
@@ -444,8 +445,18 @@ def handle_rp(message):
     gifs = action_data["gifs"]
     if gifs:
         gif_to_send = random.choice(gifs)
-        formatted_text = f"{text}\n<a href='{gif_to_send}'>&#8204;</a>"
-        bot.send_message(message.chat.id, text=formatted_text, parse_mode="HTML", reply_to_message_id=message.message_id)
+        try:
+            # Отправляем честную анимацию (гифку)
+            bot.send_animation(
+                message.chat.id, 
+                animation=gif_to_send, 
+                caption=text, 
+                parse_mode="HTML", 
+                reply_to_message_id=message.message_id
+            )
+        except Exception:
+            # Если вдруг ссылка сломана или это не прямая гифка — отправляем просто текст, чтобы не падало
+            bot.send_message(message.chat.id, text=text, parse_mode="HTML", reply_to_message_id=message.message_id)
     else:    
         bot.send_message(message.chat.id, text=text, parse_mode="HTML", reply_to_message_id=message.message_id)
 
