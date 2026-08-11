@@ -3,8 +3,12 @@ import random
 import threading
 import time
 import telebot
+import requests
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from flask import Flask
+
+# Глобальный список, куда мы скачаем слова из интернета
+ONLINE_WORDS = []
 
 # 🔑 Токен бота
 TOKEN = "8892392566:AAE0rSE7QW21zfgZsKhIpf9NrU4OjxR52HY"
@@ -83,13 +87,16 @@ CROCODILE_GAMES = {}       # {chat_id: {"mode": "classic/games", "display_word":
 
 # 🐊 Классическая база слов
 CROCODILE_WORDS = [
-    "собака", "кошка", "слон", "жираф", "бегемот", "носорог", "тигр", "лев", "леопард", "гепард", "рысь", 
-    "волк", "медведь", "лиса", "заяц", "кролик", "акула", "дельфин", "кит", "тюлень", "пингвин", "страус", 
-    "врач", "учитель", "повар", "программист", "строитель", "актер", "певец", "космонавт", "пилот", 
-    "пицца", "суши", "бургер", "пельмени", "борщ", "шоколад", "мороженое", "арбуз", "шаурма", 
-    "телевизор", "компьютер", "ноутбук", "телефон", "наушники", "микрофон", "часы", "очки", "рюкзак", 
-    "автомобиль", "самолет", "вертолет", "корабль", "велосипед", "самокат", "мотоцикл", "трактор", 
-    "любовь", "дружба", "магия", "интернет", "нейросеть", "стрим", "донат", "кринж", "вайб", "мем", "аниме"
+    "яблоко", "банан", "собака", "кошка", "слон", "жираф", "медведь", "лиса", "волк", "заяц",
+    "тигр", "лев", "акула", "дельфин", "кит", "пингвин", "страус", "крокодил", "змея", "черепаха",
+    "лягушка", "бабочка", "паук", "муха", "комар", "врач", "учитель", "повар", "строитель", "космонавт",
+    "пилот", "полицейский", "пожарный", "художник", "музыкант", "актер", "певец", "программист", "журналист", "фотограф",
+    "пицца", "суши", "бургер", "пельмени", "борщ", "шоколад", "мороженое", "арбуз", "шаурма", "торт",
+    "сыр", "хлеб", "молоко", "кофе", "чай", "телевизор", "компьютер", "ноутбук", "телефон", "наушники",
+    "микрофон", "часы", "очки", "рюкзак", "зеркало", "кровать", "диван", "стол", "стул", "лампа",
+    "автомобиль", "самолет", "вертолет", "корабль", "велосипед", "самокат", "мотоцикл", "трактор", "поезд", "автобус",
+    "любовь", "дружба", "магия", "интернет", "нейросеть", "мем", "аниме", "стрим", "донат", "вайб",
+    "кринж", "праздник", "подарок", "сюрприз", "космос", "планета", "звезда", "солнце", "луна", "облако"
 ]
 
 # 🎮 База из 150 видеоигр
@@ -297,13 +304,26 @@ def update_passive_coins(u_data):
 # ЛОГИКА И МЕНЮ ИГРЫ КРОКОДИЛ
 # ==========================================
 
-def generate_word(mode):
-    if mode == "classic":
-        selected_word = random.choice(CROCODILE_WORDS)
-        return selected_word.capitalize(), [selected_word.lower()]
-    else:
-        game_item = random.choice(GAME_WORDS)
-        return game_item["display"], game_item["answers"]
+# 1. Объявляем пустой список заранее, чтобы не было NameError
+ONLINE_WORDS = []
+
+def load_words_from_internet():
+    global ONLINE_WORDS
+    try:
+        print("Скачиваю базу слов из интернета...")
+        url = "https://raw.githubusercontent.com/Harrix/Russian-Nouns/main/dist/russian_nouns.txt"
+        response = requests.get(url, timeout=10)
+        
+        if response.status_code == 200:
+            ONLINE_WORDS = [word.strip().lower() for word in response.text.splitlines() if word.strip()]
+            print(f"Успешно загружено {len(ONLINE_WORDS)} слов из интернета!")
+        else:
+            print("Сайт со словами недоступен, будем использовать стандартную базу.")
+    except Exception as e:
+        print(f"Ошибка при скачивании слов: {e}")
+        
+        # Загружаем слова при запуске
+load_words_from_internet()
 
 def send_croc_round_message(chat_id, host_id, host_name, mode, prefix_text=""):
     display_word, answers = generate_word(mode)
@@ -427,6 +447,18 @@ def croc_change_mode(call):
     bot.answer_callback_query(call.id, f"Режим изменен на: {mode_title}", show_alert=True)
     bot.send_message(chat_id, f"🔀 **{game['host_name']}** сменил(а) режим на **{mode_title}**! Слово обновлено.", parse_mode="Markdown")
 
+def generate_word(mode):
+    if mode == "classic":
+        # Если слова скачались — берем оттуда, иначе из локальной подстраховки
+        if ONLINE_WORDS:
+            selected_word = random.choice(ONLINE_WORDS)
+        else:
+            selected_word = random.choice(CROCODILE_WORDS)
+            
+        return selected_word.capitalize(), [selected_word.lower()]
+    else:
+        game_item = random.choice(GAME_WORDS)
+        return game_item["display"], game_item["answers"]
 
 # ==========================================
 # ЭКОНОМИКА, МАГАЗИН И РП
