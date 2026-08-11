@@ -304,25 +304,26 @@ def update_passive_coins(u_data):
 # ЛОГИКА И МЕНЮ ИГРЫ КРОКОДИЛ
 # ==========================================
 
-# 1. Объявляем пустой список заранее, чтобы не было NameError
+# 1. Объявляем пустой список заранее
 ONLINE_WORDS = []
 
 def load_words_from_internet():
     global ONLINE_WORDS
     try:
         print("Скачиваю базу слов из интернета...")
-        url = "https://raw.githubusercontent.com/Harrix/Russian-Nouns/main/dist/russian_nouns.txt"
+        # 👇 СЮДА ВСТАВЬ ССЫЛКУ RAW ИЗ PASTEBIN ИЛИ GITHUB GIST 👇
+        url = "https://pastebin.com/raw/5KQM0sHA" 
         response = requests.get(url, timeout=10)
         
         if response.status_code == 200:
             ONLINE_WORDS = [word.strip().lower() for word in response.text.splitlines() if word.strip()]
-            print(f"Успешно загружено {len(ONLINE_WORDS)} слов из интернета!")
+            print(f"Успешно загружено {len(ONLINE_WORDS)} легких слов из интернета!")
         else:
             print("Сайт со словами недоступен, будем использовать стандартную базу.")
     except Exception as e:
         print(f"Ошибка при скачивании слов: {e}")
-        
-        # Загружаем слова при запуске
+
+# Загружаем слова при запуске
 load_words_from_internet()
 
 def send_croc_round_message(chat_id, host_id, host_name, mode, prefix_text=""):
