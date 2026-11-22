@@ -7,12 +7,17 @@ import requests
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from flask import Flask
 
-# Глобальный список, куда мы скачаем слова из интернета
-ONLINE_WORDS = []
-
 # 🔑 Токен бота
 TOKEN = "8892392566:AAE0rSE7QW21zfgZsKhIpf9NrU4OjxR52HY"
 bot = telebot.TeleBot(TOKEN)
+
+# 🛡 Глобальный обработчик ошибок — чтобы падения не были "тихими"
+def global_exception_handler(exception):
+    import traceback
+    print(f"❌ EXCEPTION в обработчике: {type(exception).__name__}: {exception}")
+    traceback.print_exc()
+
+bot.exception_handler(global_exception_handler)
 
 # Веб-сервер для хостинга (Render)
 app = Flask(__name__)
@@ -24,7 +29,7 @@ def home():
 # 📚 База стандартных РП-команд
 RP_COMMANDS = {
     "поцеловать": {
-        "aliases": ["поцеловать", "/kiss", "!поцеловать", "поцелуй"],
+        "aliases": ["поцеловать", "чмокнуть", "!поцеловать", "поцелуй"],
         "target_text": "💋 <b>{sender}</b> целует <b>{target}</b>!",
         "solo_text": "💋 <b>{sender}</b> целует воздух... Кого-то явно не хватает!",
         "gifs": ["https://media1.tenor.com/m/GAr1rMm39pcAAAAC/anime-hug.gif"],
@@ -86,10 +91,10 @@ RP_COMMANDS = {
 }
 
 # 🛠 Базы данных в памяти
-CHAT_CUSTOM_RP = {}        # {chat_id: {command_name: data_dict}}
-USER_ADDING_STATE = {}     # {user_id: chat_id}
-USERS_ECONOMY = {}         # {user_id: data_dict}
-CROCODILE_GAMES = {}       # {chat_id: {"mode": "classic/games", "display_word": "...", "answers": [...], "host_id": 123, "host_name": "..."}}
+CHAT_CUSTOM_RP = {}
+USER_ADDING_STATE = {}
+USERS_ECONOMY = {}
+CROCODILE_GAMES = {}
 
 # 🐊 Классическая база слов
 CROCODILE_WORDS = [
@@ -107,7 +112,6 @@ CROCODILE_WORDS = [
 
 # 🎮 База из 150 видеоигр
 GAME_WORDS = [
-    # 1 - 20
     {"display": "League of Legends", "answers": ["league of legends", "лига легенд", "лол", "lol"]},
     {"display": "Zenless Zone Zero", "answers": ["zenless zone zero", "zzz", "ззз"]},
     {"display": "Minecraft", "answers": ["minecraft", "майнкрафт", "майн"]},
@@ -128,12 +132,10 @@ GAME_WORDS = [
     {"display": "Valorant", "answers": ["valorant", "валорант"]},
     {"display": "Overwatch", "answers": ["overwatch", "овервотч", "овер"]},
     {"display": "Fallout 4", "answers": ["fallout 4", "фоллаут 4", "fallout", "фоллаут"]},
-
-    # 21 - 40
     {"display": "The Elder Scrolls V: Skyrim", "answers": ["skyrim", "скарим", "скайрим", "tes 5", "tes v"]},
     {"display": "Red Dead Redemption 2", "answers": ["red dead redemption 2", "rdr 2", "рдр 2", "rdr2", "рдр2"]},
     {"display": "Dark Souls", "answers": ["dark souls", "дарк соулс", "ДС", "ds"]},
-    {"display": "Elden Ring", "answers": ["elden ring", "елден ринг", "эSubн ринг", "эльден ринг"]},
+    {"display": "Elden Ring", "answers": ["elden ring", "елден ринг", "эльден ринг"]},
     {"display": "Bloodborne", "answers": ["bloodborne", "бладборн"]},
     {"display": "Sekiro: Shadows Die Twice", "answers": ["sekiro", "секиро"]},
     {"display": "Hollow Knight", "answers": ["hollow knight", "холоу найт", "холлоу найт"]},
@@ -150,8 +152,6 @@ GAME_WORDS = [
     {"display": "Dead Cells", "answers": ["dead cells", "дед селлс", "дед селс"]},
     {"display": "Hotline Miami", "answers": ["hotline miami", "хотлайн майами", "хотлайн"]},
     {"display": "The Binding of Isaac", "answers": ["the binding of isaac", "binding of isaac", "айзек", "isaac"]},
-
-    # 41 - 60
     {"display": "Subnautica", "answers": ["subnautica", "сабнатика", "субнатика"]},
     {"display": "Outlast", "answers": ["outlast", "аутласт"]},
     {"display": "Amnesia: The Dark Descent", "answers": ["amnesia", "амнезия"]},
@@ -172,8 +172,6 @@ GAME_WORDS = [
     {"display": "Clash Royale", "answers": ["clash royale", "клеш рояль", "клешрояль"]},
     {"display": "Clash of Clans", "answers": ["clash of clans", "клеш оф кленс", "кок"]},
     {"display": "Standoff 2", "answers": ["standoff 2", "стандофф 2", "стандофф", "стандоф"]},
-
-    # 61 - 80
     {"display": "Mobile Legends: Bang Bang", "answers": ["mobile legends", "млбб", "mlbb", "мобил легендс"]},
     {"display": "Garry's Mod", "answers": ["garry's mod", "garrys mod", "гаррис мод", "гмод", "gmod"]},
     {"display": "Left 4 Dead 2", "answers": ["left 4 dead 2", "лефт 4 дед 2", "л4д2", "l4d2", "left 4 dead"]},
@@ -194,8 +192,6 @@ GAME_WORDS = [
     {"display": "Alan Wake", "answers": ["alan wake", "алан вейк"]},
     {"display": "Quantum Break", "answers": ["quantum break", "квантум брейк"]},
     {"display": "Dishonored", "answers": ["dishonored", "дисхоноред"]},
-
-    # 81 - 100
     {"display": "Bioshock", "answers": ["bioshock", "биошок"]},
     {"display": "Hitman", "answers": ["hitman", "хитман"]},
     {"display": "Tomb Raider", "answers": ["tomb raider", "томб райдер", "лара крофт"]},
@@ -216,8 +212,6 @@ GAME_WORDS = [
     {"display": "Katana Zero", "answers": ["katana zero", "катана зеро"]},
     {"display": "Omori", "answers": ["omori", "омори"]},
     {"display": "Slay the Spire", "answers": ["slay the spire", "слей зе спайр"]},
-
-    # 101 - 120
     {"display": "Palworld", "answers": ["palworld", "палворлд", "палы"]},
     {"display": "Helldivers 2", "answers": ["helldivers 2", "хеллдайверс 2", "хелдайверс 2"]},
     {"display": "Escape from Tarkov", "answers": ["escape from tarkov", "тарков", "eft"]},
@@ -237,8 +231,6 @@ GAME_WORDS = [
     {"display": "Stellaris", "answers": ["stellaris", "стелларис"]},
     {"display": "Crusader Kings III", "answers": ["crusader kings 3", "крестоносцы 3", "ck3"]},
     {"display": "Mount & Blade II: Bannerlord", "answers": ["mount and blade", "баннерлорд", "баннерлорд 2", "маунт и блейд"]},
-
-    # 121 - 140
     {"display": "Stardew Valley", "answers": ["stardew valley", "стардью валли", "стардью"]},
     {"display": "Animal Crossing: New Horizons", "answers": ["animal crossing", "энимал кроссинг"]},
     {"display": "Cities: Skylines", "answers": ["cities skylines", "ситис скайлайнс"]},
@@ -259,8 +251,6 @@ GAME_WORDS = [
     {"display": "Hill Climb Racing", "answers": ["hill climb racing", "хилл клаймб ресинг", "машинки"]},
     {"display": "Doodle Jump", "answers": ["doodle jump", "дудл джамп"]},
     {"display": "Pac-Man", "answers": ["pac-man", "pacman", "пакман"]},
-
-    # 141 - 150
     {"display": "Tetris", "answers": ["tetris", "тетрис"]},
     {"display": "Sonic the Hedgehog", "answers": ["sonic", "соник"]},
     {"display": "Super Mario Bros.", "answers": ["super mario", "mario", "марио", "супер марио"]},
@@ -310,17 +300,15 @@ def update_passive_coins(u_data):
 # ЛОГИКА И МЕНЮ ИГРЫ КРОКОДИЛ
 # ==========================================
 
-# 1. Объявляем пустой список заранее
 ONLINE_WORDS = []
 
 def load_words_from_internet():
     global ONLINE_WORDS
     try:
         print("Скачиваю базу слов из интернета...")
-        # 👇 СЮДА ВСТАВЬ ССЫЛКУ RAW ИЗ PASTEBIN ИЛИ GITHUB GIST 👇
-        url = "https://pastebin.com/raw/5KQM0sHA" 
+        url = "https://pastebin.com/raw/5KQM0sHA"
         response = requests.get(url, timeout=10)
-        
+
         if response.status_code == 200:
             ONLINE_WORDS = [word.strip().lower() for word in response.text.splitlines() if word.strip()]
             print(f"Успешно загружено {len(ONLINE_WORDS)} легких слов из интернета!")
@@ -329,12 +317,11 @@ def load_words_from_internet():
     except Exception as e:
         print(f"Ошибка при скачивании слов: {e}")
 
-# Загружаем слова при запуске
 load_words_from_internet()
 
 def send_croc_round_message(chat_id, host_id, host_name, mode, prefix_text=""):
     display_word, answers = generate_word(mode)
-    
+
     CROCODILE_GAMES[chat_id] = {
         "mode": mode,
         "display_word": display_word,
@@ -396,8 +383,20 @@ def start_selected_game_mode(call):
         bot.answer_callback_query(call.id, "Игра уже запущена!", show_alert=True)
         return
 
-    bot.delete_message(chat_id, call.message.message_id)
-    send_croc_round_message(chat_id, user.id, user.first_name, mode, "🎉 **Игра запущенa!**\n\n")
+    # ✅ Отвечаем СРАЗУ, чтобы не висел спиннер
+    bot.answer_callback_query(call.id, "Игра запускается...")
+
+    # Удаление меню — в try, если не получится, играть это не помешает
+    try:
+        bot.delete_message(chat_id, call.message.message_id)
+    except Exception as e:
+        print(f"Не смог удалить меню: {e}")
+
+    try:
+        send_croc_round_message(chat_id, user.id, user.first_name, mode, "🎉 **Игра запущена!**\n\n")
+    except Exception as e:
+        print(f"Ошибка запуска раунда: {e}")
+        bot.send_message(chat_id, "❌ Не удалось запустить игру, попробуй ещё раз.")
 
 @bot.callback_query_handler(func=lambda call: call.data == "croc_show_word")
 def croc_show_word(call):
@@ -405,12 +404,12 @@ def croc_show_word(call):
     if chat_id not in CROCODILE_GAMES:
         bot.answer_callback_query(call.id, "Эта игра уже закончилась!", show_alert=True)
         return
-        
+
     game = CROCODILE_GAMES[chat_id]
     if call.from_user.id != game["host_id"]:
         bot.answer_callback_query(call.id, f"Эй! Ты не ведущий, тебе смотреть нельзя! Ведущий: {game['host_name']} 😡", show_alert=True)
         return
-        
+
     bot.answer_callback_query(call.id, f"Твоя цель:\n\n{game['display_word'].upper()}\n\nОбъясни это остальным!", show_alert=True)
 
 @bot.callback_query_handler(func=lambda call: call.data == "croc_skip_word")
@@ -428,8 +427,8 @@ def croc_skip_word(call):
     display_word, answers = generate_word(game["mode"])
     game["display_word"] = display_word
     game["answers"] = answers
-    
-    bot.answer_callback_query(call.id, f"Новое слово выбрано! Нажми 'Загаданное слово', чтобы узнать его.", show_alert=True)
+
+    bot.answer_callback_query(call.id, "Новое слово выбрано! Нажми 'Загаданное слово', чтобы узнать его.", show_alert=True)
     bot.send_message(chat_id, f"🔄 **{game['host_name']}** поменял(а) слово! Отгадываем заново!", parse_mode="Markdown")
 
 @bot.callback_query_handler(func=lambda call: call.data == "croc_change_mode")
@@ -456,12 +455,10 @@ def croc_change_mode(call):
 
 def generate_word(mode):
     if mode == "classic":
-        # Если слова скачались — берем оттуда, иначе из локальной подстраховки
         if ONLINE_WORDS:
             selected_word = random.choice(ONLINE_WORDS)
         else:
             selected_word = random.choice(CROCODILE_WORDS)
-            
         return selected_word.capitalize(), [selected_word.lower()]
     else:
         game_item = random.choice(GAME_WORDS)
@@ -487,20 +484,20 @@ def show_profile(message):
     user = message.from_user
     u_data = get_user_data(user.id)
     update_passive_coins(u_data)
-    
+
     inv = ", ".join([SHOP_ITEMS[item]["name"] for item in u_data["inventory"]]) or "Пусто"
-    
+
     text = (
         f"👤 **Профиль: {user.first_name}**\n\n"
         f"🪙 Баланс: `{u_data['coins']} некокойнов`\n"
         f"🎒 Инвентарь: {inv}\n"
     )
-    
+
     now = time.time()
     if u_data["ramen_expires_at"] > now:
         rem_min = int((u_data["ramen_expires_at"] - now) // 60)
         text += f"🍜 Рамен активен еще: `{rem_min} мин.`\n"
-        
+
     text += (
         f"\n📊 Статистика РП:\n"
         f" • Всего действий: `{u_data['stats']['actions']}`\n"
@@ -508,14 +505,14 @@ def show_profile(message):
         f" • Поцелуев: `{u_data['stats']['kisses']}`\n\n"
         "🛠 **Управление эффектами:**\nнажимай на кнопки ниже, чтобы включить или выключить их:"
     )
-    
+
     markup = InlineKeyboardMarkup(row_width=1)
     for item_key in u_data["inventory"]:
         item_name = SHOP_ITEMS[item_key]["name"]
         is_active = item_key in u_data["active_effects"]
         status_icon = "🟢 ВКЛ" if is_active else "🔴 ВЫКЛ"
         markup.add(InlineKeyboardButton(f"{item_name} [{status_icon}]", callback_data=f"toggle_{item_key}"))
-        
+
     if not u_data["inventory"]:
         markup.add(InlineKeyboardButton("🛍 В магазин", callback_data="goto_shop"))
 
@@ -526,27 +523,27 @@ def toggle_effect(call):
     user_id = call.from_user.id
     item_key = call.data.replace("toggle_", "", 1)
     u_data = get_user_data(user_id)
-    
+
     if item_key not in u_data["inventory"]:
         bot.answer_callback_query(call.id, "У тебя нет этого предмета!", show_alert=True)
         return
-        
+
     if item_key in u_data["active_effects"]:
         u_data["active_effects"].remove(item_key)
         bot.answer_callback_query(call.id, "Эффект выключен!")
     else:
         u_data["active_effects"].append(item_key)
         bot.answer_callback_query(call.id, "Эффект успешно активирован!")
-        
+
     try:
         show_profile_edited(call.message, user_id)
-    except:
-        pass
+    except Exception as e:
+        print(f"Не смог обновить профиль: {e}")
 
 def show_profile_edited(message, user_id):
     u_data = get_user_data(user_id)
     inv = ", ".join([SHOP_ITEMS[item]["name"] for item in u_data["inventory"]]) or "Пусто"
-    
+
     text = (
         f"👤 **Профиль**\n\n"
         f"🪙 Баланс: `{u_data['coins']} некокойнов`\n"
@@ -556,16 +553,16 @@ def show_profile_edited(message, user_id):
     if u_data["ramen_expires_at"] > now:
         rem_min = int((u_data["ramen_expires_at"] - now) // 60)
         text += f"🍜 Рамен активен еще: `{rem_min} мин.`\n"
-        
+
     text += "\n🛠 **Управление эффектами:**"
-    
+
     markup = InlineKeyboardMarkup(row_width=1)
     for item_key in u_data["inventory"]:
         item_name = SHOP_ITEMS[item_key]["name"]
         is_active = item_key in u_data["active_effects"]
         status_icon = "🟢 ВКЛ" if is_active else "🔴 ВЫКЛ"
         markup.add(InlineKeyboardButton(f"{item_name} [{status_icon}]", callback_data=f"toggle_{item_key}"))
-        
+
     bot.edit_message_text(text, message.chat.id, message.message_id, parse_mode="Markdown", reply_markup=markup)
 
 @bot.message_handler(func=lambda m: m.text and m.text.lower().strip() == "магазин")
@@ -573,7 +570,7 @@ def show_shop(message):
     markup = InlineKeyboardMarkup(row_width=1)
     for key, item in SHOP_ITEMS.items():
         markup.add(InlineKeyboardButton(f"{item['name']} — {item['price']} 🪙", callback_data=f"buy_{key}"))
-    
+
     bot.send_message(
         message.chat.id,
         "🛍 **Неко-Магазин товаров**\n\n(Купить каждый товар можно 1 раз в сутки):\nВыбирай позицию:",
@@ -583,34 +580,48 @@ def show_shop(message):
 
 @bot.callback_query_handler(func=lambda call: call.data == "goto_shop")
 def callback_goto_shop(call):
-    show_shop(call.message)
+    # ✅ Отвечаем на коллбэк, чтобы не висел спиннер
+    bot.answer_callback_query(call.id)
+    markup = InlineKeyboardMarkup(row_width=1)
+    for key, item in SHOP_ITEMS.items():
+        markup.add(InlineKeyboardButton(f"{item['name']} — {item['price']} 🪙", callback_data=f"buy_{key}"))
+    try:
+        bot.edit_message_text(
+            "🛍 **Неко-Магазин товаров**\n\n(Купить каждый товар можно 1 раз в сутки):\nВыбирай позицию:",
+            call.message.chat.id,
+            call.message.message_id,
+            reply_markup=markup,
+            parse_mode="Markdown"
+        )
+    except Exception as e:
+        print(f"Не смог открыть магазин: {e}")
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("buy_"))
 def buy_item(call):
     user_id = call.from_user.id
     item_key = call.data.replace("buy_", "", 1)
     u_data = get_user_data(user_id)
-    
+
     if item_key not in SHOP_ITEMS:
         bot.answer_callback_query(call.id, "Товар не найден!")
         return
-        
+
     item = SHOP_ITEMS[item_key]
-    
+
     now = time.time()
     last_buy = u_data["purchase_cooldowns"].get(item_key, 0)
     if now - last_buy < 86400:
         hours_left = int((86400 - (now - last_buy)) // 3600)
         bot.answer_callback_query(call.id, f"Купить этот товар можно будет через {hours_left} ч. (кулдаун 1 день)", show_alert=True)
         return
-        
+
     if u_data["coins"] < item["price"]:
         bot.answer_callback_query(call.id, f"Не хватает некокойнов! Нужно {item['price']} 🪙", show_alert=True)
         return
-        
+
     u_data["coins"] -= item["price"]
     u_data["purchase_cooldowns"][item_key] = now
-    
+
     if item_key == "ramen":
         u_data["ramen_expires_at"] = now + 3600
         if "ramen" not in u_data["inventory"]:
@@ -622,7 +633,7 @@ def buy_item(call):
         if item_key not in u_data["inventory"]:
             u_data["inventory"].append(item_key)
         bot.answer_callback_query(call.id, f"Успешная покупка: {item['name']}!", show_alert=True)
-        
+
     bot.edit_message_text(
         f"✅ Вы успешно приобрели **{item['name']}**!\nПроверить инвентарь и включить эффект можно написав слово `профиль`.",
         call.message.chat.id,
@@ -636,12 +647,12 @@ def daily_reward(message):
     u_data = get_user_data(user_id)
     update_passive_coins(u_data)
     now = time.time()
-    
+
     if now - u_data["last_daily"] < 86400:
         left = int((86400 - (now - u_data["last_daily"])) // 3600)
         bot.send_message(message.chat.id, f"⏳ Ты уже забирал награду. Следующая будет доступна через {left} ч.", reply_to_message_id=message.message_id)
         return
-        
+
     u_data["last_daily"] = now
     reward = 50
     u_data["coins"] += reward
@@ -668,7 +679,7 @@ def rp_menu_callback(call):
     chat_id = call.message.chat.id
     user_id = call.from_user.id
     data = call.data
-    
+
     if data == "rp_menu_add":
         USER_ADDING_STATE[user_id] = chat_id
         bot.answer_callback_query(call.id)
@@ -706,6 +717,8 @@ def rp_delete_callback(call):
         del CHAT_CUSTOM_RP[chat_id][cmd_name]
         bot.answer_callback_query(call.id, f"Команда '{cmd_name}' удалена!")
         bot.edit_message_text(f"🗑 Команда **{cmd_name}** удалена!", chat_id, call.message.message_id, parse_mode="Markdown")
+    else:
+        bot.answer_callback_query(call.id, "Команда не найдена.", show_alert=True)
 
 @bot.message_handler(func=lambda m: m.from_user.id in USER_ADDING_STATE)
 def process_new_rp(message):
@@ -717,7 +730,17 @@ def process_new_rp(message):
     if len(parts) < 4:
         bot.send_message(chat_id, "❌ Ошибка формата! Нужно 4 части через `|`.", parse_mode="Markdown")
         return
+
     name = parts[0].strip().lower()
+
+    # 🛡 Защита от слишком длинного имени (Telegram: callback_data ≤ 64 байт)
+    if len(name) > 40:
+        bot.send_message(chat_id, "❌ Слишком длинное название команды! Максимум 40 символов.", reply_to_message_id=message.message_id)
+        return
+    if "|" in name:
+        bot.send_message(chat_id, "❌ Название команды не должно содержать `|`.", parse_mode="Markdown", reply_to_message_id=message.message_id)
+        return
+
     CHAT_CUSTOM_RP.setdefault(chat_id, {})[name] = {
         "aliases": [name],
         "target_text": parts[1].strip(),
@@ -757,7 +780,7 @@ def handle_rp(message):
     user = message.from_user
     u_data = get_user_data(user.id)
     update_passive_coins(u_data)
-    
+
     gain = 3 if "ears" in u_data["active_effects"] else 1
     u_data["coins"] += gain
     u_data["stats"]["actions"] += 1
@@ -790,7 +813,7 @@ def handle_rp(message):
         gif_to_send = random.choice(gifs)
         formatted_text = f"{text}\n<a href='{gif_to_send}'>&#8204;</a>"
         bot.send_message(message.chat.id, text=formatted_text, parse_mode="HTML", reply_to_message_id=message.message_id)
-    else:   
+    else:
         bot.send_message(message.chat.id, text=text, parse_mode="HTML", reply_to_message_id=message.message_id)
 
 # ==========================================
@@ -800,23 +823,21 @@ def handle_rp(message):
 def handle_all_messages(message):
     if not message.text:
         return
-        
+
     chat_id = message.chat.id
     user_id = message.from_user.id
     text = message.text.lower().strip()
-    
-    # Пассивный фарм от рамена
+
     u_data = get_user_data(user_id)
     update_passive_coins(u_data)
 
-    # 🐊 Логика проверки победы и авто-передачи очереди
     if chat_id in CROCODILE_GAMES:
         game = CROCODILE_GAMES[chat_id]
-        
+
         if text in ["сдаемся", "стоп крокодил", "стоп"]:
             bot.send_message(
-                chat_id, 
-                f"🛑 **Игра остановлена!**\nЗагаданное было: **{game['display_word'].upper()}**", 
+                chat_id,
+                f"🛑 **Игра остановлена!**\nЗагаданное было: **{game['display_word'].upper()}**",
                 parse_mode="Markdown"
             )
             del CROCODILE_GAMES[chat_id]
@@ -827,14 +848,13 @@ def handle_all_messages(message):
                 reward = 100
                 u_data["coins"] += reward
                 current_mode = game["mode"]
-                
+
                 win_text = (
                     f"🎉 **{message.from_user.first_name}** угадал(а) **{game['display_word'].upper()}**!\n"
                     f"Награда: `{reward} некокойнов` 🪙\n"
                     f"🏆 Теперь **{message.from_user.first_name}** становится новым ведущим!\n\n"
                 )
 
-                # Удаляем старый раунд и мгновенно запускаем новый для угадавшего
                 del CROCODILE_GAMES[chat_id]
                 send_croc_round_message(chat_id, user_id, message.from_user.first_name, current_mode, prefix_text=win_text)
 
@@ -847,7 +867,14 @@ def run_flask():
 
 if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
-    
+
+    # 🧹 Убираем возможный вебхук — иначе callback_query может теряться
+    try:
+        bot.delete_webhook()
+        print("✅ Webhook удалён (если был)")
+    except Exception as e:
+        print(f"Не смог удалить webhook: {e}")
+
     print("Бот запущен и работает!")
     while True:
         try:
@@ -855,5 +882,3 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Ошибка бота: {e}")
             time.sleep(5)
-            
-            
