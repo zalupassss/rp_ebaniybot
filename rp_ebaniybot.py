@@ -31,6 +31,7 @@ bot = telebot.TeleBot(TOKEN, exception_handler=global_exception_handler)
 BOT_COMMANDS = {
     "games": ["крокодил"],
     "hangman": ["виселица", "виселицу", "hangman"],
+    "ttt": ["крестики", "нолики", "крестикинолики", "ttt", "х0", "xo"],
     "balance": ["баланс", "монеты", "бабки"],
     "profile": ["профиль", "мойпрофиль", "статистика", "инвентарь", "стата"],
     "shop": ["магазин", "шоп", "магаз", "лавка"],
@@ -116,6 +117,7 @@ USER_ADDING_STATE = {}
 USERS_ECONOMY = {}
 CROCODILE_GAMES = {}
 HANGMAN_GAMES = {}
+TTT_GAMES = {} # {chat_id: {"board": ["", "", ...], "user_id": 123}}
 
 # 🪢 Графика для Виселицы (0 - 6 ошибок)
 HANGMAN_ART = [
@@ -515,14 +517,13 @@ def start_hangman(message):
         bot.send_message(chat_id, "🪢 Игра в виселицу уже идет! Называйте буквы или напишите <code>стоп</code>, чтобы сдаться.", parse_mode="HTML")
         return
         
-    if chat_id in CROCODILE_GAMES:
-        bot.send_message(chat_id, "🐊 Сначала закончите игру в Крокодила (напишите <code>стоп</code>).", parse_mode="HTML")
+    if chat_id in CROCODILE_GAMES or chat_id in TTT_GAMES:
+        bot.send_message(chat_id, "🐊 Сначала закончите другую игру (напишите <code>стоп</code>).", parse_mode="HTML")
         return
 
-    # Берем слово из твоей базы (фильтруем только буквы без пробелов и дефисов)
     word_pool = [w.lower() for w in (ONLINE_WORDS if ONLINE_WORDS else CROCODILE_WORDS) if w.isalpha()]
     if not word_pool:
-         word_pool = ["виселица", "телеграм", "программирование", "крокодил"] # Запасной вариант
+         word_pool = ["виселица", "телеграм", "программирование", "крокодил"]
 
     word = random.choice(word_pool)
     
@@ -533,7 +534,6 @@ def start_hangman(message):
         "max_mistakes": 6
     }
     
-    # Формируем скрытое слово
     hidden_word = " ".join(["_" if char not in HANGMAN_GAMES[chat_id]["guessed_letters"] else char for char in word])
     
     text = (
@@ -545,6 +545,149 @@ def start_hangman(message):
         f"Чтобы закончить, напишите <code>стоп</code>."
     )
     bot.send_message(chat_id, text, parse_mode="HTML")
+
+# ==========================================
+# ❌⭕ ЛОГИКА ИГРЫ КРЕСТИКИ-НОЛИКИ
+# ==========================================
+
+def check_ttt_win(board):
+    win_combos = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8], # Горизонтали
+        [0, 3, 6], [1, 4, 7], [2, 5, 8], # Вертикали
+        [0, 4, 8], [2, 4, 6]             # Диагонали
+    ]
+    for combo in win_combos:
+        if board[combo[0]] == board[combo[1]] == board[combo[2]] != "":
+            return board[combo[0]]
+    return None
+
+def get_ttt_markup(board):
+    markup = InlineKeyboardMarkup(row_width=3)
+    buttons = []
+    for i in range(9):
+        text = board[i] if board[i] else "⬜"
+        buttons.append(InlineKeyboardButton(text, callback_data=f"ttt_{i}"))
+    markup.add(*buttons)
+    return markup
+
+def bot_ttt_move(board):
+    # 1. Попытка выиграть
+    for i in range(9):
+        if board[i] == "":
+            board[i] = "⭕"
+            if check_ttt_win(board) == "⭕":
+                return
+            board[i] = ""
+    
+    # 2. Попытка заблокировать игрока
+    for i in range(9):
+        if board[i] == "":
+            board[i] = "❌"
+            if check_ttt_win(board) == "❌":
+                board[i] = "⭕"
+                return
+            board[i] = ""
+            
+    # 3. Случайный ход
+    empty_cells = [i for i in range(9) if board[i] == ""]
+    if empty_cells:
+        board[random.choice(empty_cells)] = "⭕"
+
+@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in BOT_COMMANDS["ttt"])
+def start_ttt(message):
+    chat_id = message.chat.id
+    
+    if chat_id in TTT_GAMES:
+        bot.send_message(chat_id, "❌⭕ Игра уже идет! Кликай на пустые клетки.", reply_to_message_id=message.message_id)
+        return
+        
+    if chat_id in CROCODILE_GAMES or chat_id in HANGMAN_GAMES:
+        bot.send_message(chat_id, "Сначала закончите текущую игру (напишите <code>стоп</code>).", parse_mode="HTML")
+        return
+
+    TTT_GAMES[chat_id] = {
+        "board": [""] * 9,
+        "user_id": message.from_user.id
+    }
+    
+    bot.send_message(
+        chat_id,
+        f"❌⭕ <b>Крестики-нолики!</b>\n\nИгра против бота.\nТвой ход! Нажимай на пустые клетки ⬜.",
+        reply_markup=get_ttt_markup(TTT_GAMES[chat_id]["board"]),
+        parse_mode="HTML"
+    )
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("ttt_"))
+def handle_ttt_move(call):
+    bot.answer_callback_query(call.id)
+    chat_id = call.message.chat.id
+    
+    if chat_id not in TTT_GAMES:
+        bot.answer_callback_query(call.id, "Игра уже закончена!", show_alert=True)
+        return
+        
+    game = TTT_GAMES[chat_id]
+    
+    if call.from_user.id != game["user_id"]:
+        bot.answer_callback_query(call.id, "Это не твоя игра! Напиши 'крестики', чтобы начать свою.", show_alert=True)
+        return
+
+    cell_idx = int(call.data.split("_")[1])
+    
+    if game["board"][cell_idx] != "":
+        bot.answer_callback_query(call.id, "Клетка уже занята!", show_alert=True)
+        return
+        
+    # Ход игрока
+    game["board"][cell_idx] = "❌"
+    
+    # Проверка победы игрока
+    if check_ttt_win(game["board"]) == "❌":
+        user = get_user_data(call.from_user.id)
+        user["coins"] += 30
+        safe_name = html.escape(call.from_user.first_name)
+        bot.edit_message_text(
+            f"🎉 <b>Победа!</b> <b>{safe_name}</b> обыграл(а) бота в крестики-нолики!\nНаграда: <code>30 некокойнов</code> 🪙",
+            chat_id, call.message.message_id, parse_mode="HTML"
+        )
+        del TTT_GAMES[chat_id]
+        return
+        
+    # Проверка на ничью
+    if "" not in game["board"]:
+        bot.edit_message_text(
+            "🤝 <b>Ничья!</b> Достойная игра.",
+            chat_id, call.message.message_id, parse_mode="HTML"
+        )
+        del TTT_GAMES[chat_id]
+        return
+
+    # Ход бота
+    bot_ttt_move(game["board"])
+    
+    # Проверка победы бота
+    if check_ttt_win(game["board"]) == "⭕":
+        bot.edit_message_text(
+            "🤖 <b>Бот победил!</b> В следующий раз повезет больше.",
+            chat_id, call.message.message_id, parse_mode="HTML"
+        )
+        del TTT_GAMES[chat_id]
+        return
+        
+    # Проверка на ничью после бота
+    if "" not in game["board"]:
+        bot.edit_message_text(
+            "🤝 <b>Ничья!</b> Достойная игра.",
+            chat_id, call.message.message_id, parse_mode="HTML"
+        )
+        del TTT_GAMES[chat_id]
+        return
+
+    # Обновляем доску
+    bot.edit_message_reply_markup(
+        chat_id, call.message.message_id,
+        reply_markup=get_ttt_markup(game["board"])
+    )
 
 
 # ==========================================
@@ -849,7 +992,7 @@ def show_all_commands(message):
         "📜 <b>Список всех команд:</b>\n\n"
         "🎭 <b>РП-команды:</b> поцеловать, обнять, погладить, укусить, покормить, оставить засос, флиртовать, трахнуть\n"
         "🪙 <b>Экономика:</b> баланс, профиль, магазин, награда\n"
-        "🎮 <b>Игры:</b> крокодил, виселица\n"
+        "🎮 <b>Игры:</b> крокодил, виселица, крестики\n"
         "🛠 <b>Кастом:</b> кастомрп (панель создания)"
     )
     bot.send_message(message.chat.id, text, parse_mode="HTML", reply_to_message_id=message.message_id)
@@ -938,7 +1081,6 @@ def handle_all_messages(message):
             del HANGMAN_GAMES[chat_id]
             return
 
-        # Если написали одну букву
         if len(text) == 1 and text.isalpha():
             if text in game["guessed_letters"]:
                 bot.send_message(chat_id, "Эту букву уже называли! Выбери другую.", reply_to_message_id=message.message_id)
@@ -946,9 +1088,7 @@ def handle_all_messages(message):
 
             game["guessed_letters"].add(text)
 
-            # Проверяем, есть ли буква в слове
             if text in game["word"]:
-                # Проверяем, выиграли ли
                 if all(char in game["guessed_letters"] for char in game["word"]):
                     reward = 50
                     u_data["coins"] += reward
@@ -974,7 +1114,6 @@ def handle_all_messages(message):
                     del HANGMAN_GAMES[chat_id]
                     return
 
-            # Показываем обновленное состояние
             hidden_word = " ".join([char if char in game["guessed_letters"] else "_" for char in game["word"]])
             text_state = (
                 f"Слово: <code>{hidden_word}</code>\n"
