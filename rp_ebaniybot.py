@@ -568,10 +568,10 @@ def get_ttt_markup(board):
         text = board[i] if board[i] else "⬜"
         buttons.append(InlineKeyboardButton(text, callback_data=f"ttt_move_{i}"))
     markup.add(*buttons)
+    markup.add(InlineKeyboardButton("🛑 Завершить игру", callback_data="ttt_cancel"))
     return markup
 
 def bot_ttt_move(board):
-    # 1. Попытка выиграть
     for i in range(9):
         if board[i] == "":
             board[i] = "⭕"
@@ -579,7 +579,6 @@ def bot_ttt_move(board):
                 return
             board[i] = ""
 
-    # 2. Попытка заблокировать игрока
     for i in range(9):
         if board[i] == "":
             board[i] = "❌"
@@ -588,17 +587,43 @@ def bot_ttt_move(board):
                 return
             board[i] = ""
 
-    # 3. Случайный ход
     empty_cells = [i for i in range(9) if board[i] == ""]
     if empty_cells:
         board[random.choice(empty_cells)] = "⭕"
+
+@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in ["стоп", "сдаемся", "стоп крестики"] and m.chat.id in TTT_GAMES)
+def stop_ttt_direct(message):
+    chat_id = message.chat.id
+    del TTT_GAMES[chat_id]
+    bot.send_message(chat_id, "🛑 <b>Игра в Крестики-нолики остановлена!</b>", parse_mode="HTML", reply_to_message_id=message.message_id)
+
+@bot.callback_query_handler(func=lambda call: call.data == "ttt_cancel")
+def cancel_ttt_callback(call):
+    chat_id = call.message.chat.id
+    if chat_id in TTT_GAMES:
+        del TTT_GAMES[chat_id]
+        bot.answer_callback_query(call.id, "Игра отменена!")
+        try:
+            bot.edit_message_text("🛑 <b>Игра в Крестики-нолики отменена.</b>", chat_id, call.message.message_id, parse_mode="HTML")
+        except Exception:
+            pass
+    else:
+        bot.answer_callback_query(call.id, "Игра уже неактивна.", show_alert=True)
 
 @bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in BOT_COMMANDS["ttt"])
 def start_ttt_menu(message):
     chat_id = message.chat.id
 
     if chat_id in TTT_GAMES:
-        bot.send_message(chat_id, "❌⭕ Игра уже идет или ждет соперника! Чтобы отменить, напишите <code>стоп</code>.", parse_mode="HTML", reply_to_message_id=message.message_id)
+        markup = InlineKeyboardMarkup()
+        markup.add(InlineKeyboardButton("🛑 Отменить текущую игру", callback_data="ttt_cancel"))
+        bot.send_message(
+            chat_id,
+            "❌⭕ Игра уже идет или ждет соперника! Напиши <code>стоп</code> или нажми кнопку ниже:",
+            reply_markup=markup,
+            parse_mode="HTML",
+            reply_to_message_id=message.message_id
+        )
         return
 
     if chat_id in CROCODILE_GAMES or chat_id in HANGMAN_GAMES:
@@ -660,8 +685,11 @@ def select_ttt_mode(call):
             "p2_name": None,
             "turn": "X"
         }
-        markup = InlineKeyboardMarkup()
-        markup.add(InlineKeyboardButton("⚔️ Принять вызов", callback_data="ttt_join"))
+        markup = InlineKeyboardMarkup(row_width=1)
+        markup.add(
+            InlineKeyboardButton("⚔️ Принять вызов", callback_data="ttt_join"),
+            InlineKeyboardButton("🛑 Отменить", callback_data="ttt_cancel")
+        )
 
         bot.edit_message_text(
             f"❌⭕ <b>Вызов на дуэль в Крестики-нолики!</b>\n\n"
@@ -710,7 +738,6 @@ def handle_ttt_move(call):
     cell_idx = int(call.data.split("_")[2])
     user_id = call.from_user.id
 
-    # --- РЕЖИМ ПРОТИВ БОТА ---
     if game["mode"] == "bot":
         if user_id != game["p1_id"]:
             bot.answer_callback_query(call.id, "Это не твоя игра! Напиши 'крестики', чтобы начать свою.", show_alert=True)
@@ -752,7 +779,6 @@ def handle_ttt_move(call):
 
         bot.edit_message_reply_markup(chat_id, call.message.message_id, reply_markup=get_ttt_markup(game["board"]))
 
-    # --- РЕЖИМ ПРОТИВ ИГРОКА (PvP) ---
     elif game["mode"] == "pvp":
         if user_id not in [game["p1_id"], game["p2_id"]]:
             bot.answer_callback_query(call.id, "Ты не участвуешь в этой дуэли!", show_alert=True)
@@ -771,7 +797,6 @@ def handle_ttt_move(call):
         symbol = "❌" if game["turn"] == "X" else "⭕"
         game["board"][cell_idx] = symbol
 
-        # Проверка победы
         if check_ttt_win(game["board"]) == symbol:
             winner_id = game["p1_id"] if symbol == "❌" else game["p2_id"]
             winner_name = game["p1_name"] if symbol == "❌" else game["p2_name"]
@@ -787,7 +812,6 @@ def handle_ttt_move(call):
             del TTT_GAMES[chat_id]
             return
 
-        # Проверка ничьей
         if "" not in game["board"]:
             bot.edit_message_text(
                 f"🤝 <b>Ничья!</b>\n\n❌ <b>{game['p1_name']}</b> и ⭕ <b>{game['p2_name']}</b> сыграли на равных.",
@@ -796,7 +820,6 @@ def handle_ttt_move(call):
             del TTT_GAMES[chat_id]
             return
 
-        # Передача хода
         game["turn"] = "O" if game["turn"] == "X" else "X"
         next_symbol = "❌" if game["turn"] == "X" else "⭕"
         next_name = game["p1_name"] if game["turn"] == "X" else game["p2_name"]
@@ -809,7 +832,6 @@ def handle_ttt_move(call):
             reply_markup=get_ttt_markup(game["board"]),
             parse_mode="HTML"
         )
-
 
 # ==========================================
 # ЭКОНОМИКА, МАГАЗИН И РП
