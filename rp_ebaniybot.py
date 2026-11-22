@@ -9,7 +9,6 @@ from flask import Flask
 
 # 🔑 Токен бота
 TOKEN = "8892392566:AAE0rSE7QW21zfgZsKhIpf9NrU4OjxR52HY"
-bot = telebot.TeleBot(TOKEN)
 
 # 🛡 Глобальный обработчик ошибок — чтобы падения не были "тихими"
 def global_exception_handler(exception):
@@ -17,8 +16,8 @@ def global_exception_handler(exception):
     print(f"❌ EXCEPTION в обработчике: {type(exception).__name__}: {exception}")
     traceback.print_exc()
 
-# ✅ ИСПРАВЛЕНО: Используем set_exception_handler вместо вызова атрибута
-bot.set_exception_handler(global_exception_handler)
+# ✅ ИСПРАВЛЕНО: передаем обработчик прямо в конструктор TeleBot
+bot = telebot.TeleBot(TOKEN, exception_handler=global_exception_handler)
 
 # Веб-сервер для хостинга (Render)
 app = Flask(__name__)
