@@ -2,6 +2,7 @@ import os
 import random
 import threading
 import time
+import html
 import telebot
 import requests
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -10,13 +11,13 @@ from flask import Flask
 # 🔑 Токен бота
 TOKEN = "8892392566:AAE0rSE7QW21zfgZsKhIpf9NrU4OjxR52HY"
 
-# 🛡 Глобальный обработчик ошибок — чтобы падения не были "тихими"
+# 🛡 Глобальный обработчик ошибок
 def global_exception_handler(exception):
     import traceback
     print(f"❌ EXCEPTION в обработчике: {type(exception).__name__}: {exception}")
     traceback.print_exc()
 
-# ✅ ИСПРАВЛЕНО: передаем обработчик прямо в конструктор TeleBot
+# ✅ Передаем обработчик прямо в конструктор TeleBot
 bot = telebot.TeleBot(TOKEN, exception_handler=global_exception_handler)
 
 # Веб-сервер для хостинга (Render)
@@ -331,6 +332,7 @@ def send_croc_round_message(chat_id, host_id, host_name, mode, prefix_text=""):
     }
 
     mode_title = "🐊 Классический Крокодил" if mode == "classic" else "🎮 Отгадай игру"
+    safe_host_name = html.escape(host_name)
 
     markup = InlineKeyboardMarkup(row_width=2)
     markup.add(
@@ -341,13 +343,13 @@ def send_croc_round_message(chat_id, host_id, host_name, mode, prefix_text=""):
 
     msg_text = (
         f"{prefix_text}"
-        f"🎯 **Новый раунд ({mode_title})!**\n\n"
-        f"👑 Ведущий: **{host_name}**\n\n"
+        f"🎯 <b>Новый раунд ({mode_title})!</b>\n\n"
+        f"👑 Ведущий: <b>{safe_host_name}</b>\n\n"
         f"Ведущий, жми на кнопку ниже, смотри слово и объясняй его чату!\n"
-        f"Чтобы остановить игру, напишите `стоп` или `сдаемся`."
+        f"Чтобы остановить игру, напишите <code>стоп</code> или <code>сдаемся</code>."
     )
 
-    bot.send_message(chat_id, msg_text, reply_markup=markup, parse_mode="Markdown")
+    bot.send_message(chat_id, msg_text, reply_markup=markup, parse_mode="HTML")
 
 
 @bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in ["крокодил", "игры", "игра"])
@@ -355,7 +357,8 @@ def show_game_menu(message):
     chat_id = message.chat.id
     if chat_id in CROCODILE_GAMES:
         game = CROCODILE_GAMES[chat_id]
-        bot.send_message(chat_id, f"🐊 Игра уже идет! Ведущий: **{game['host_name']}**.\nЧтобы закончить, напишите `стоп`.", parse_mode="Markdown")
+        safe_name = html.escape(game['host_name'])
+        bot.send_message(chat_id, f"🐊 Игра уже идет! Ведущий: <b>{safe_name}</b>.\nЧтобы закончить, напишите <code>стоп</code>.", parse_mode="HTML")
         return
 
     markup = InlineKeyboardMarkup(row_width=1)
@@ -366,15 +369,16 @@ def show_game_menu(message):
 
     bot.send_message(
         chat_id,
-        "🎮 **Выбери режим игры:**\n\n"
-        "• **Классический** — обычные предметы, животные и слова.\n"
-        f"• **Отгадай игру** — {len(GAME_WORDS)} популярных ПК и мобильных видеоигр!",
+        "🎮 <b>Выбери режим игры:</b>\n\n"
+        "• <b>Классический</b> — обычные предметы, животные и слова.\n"
+        f"• <b>Отгадай игру</b> — {len(GAME_WORDS)} популярных ПК и мобильных видеоигр!",
         reply_markup=markup,
-        parse_mode="Markdown"
+        parse_mode="HTML"
     )
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("start_mode_"))
 def start_selected_game_mode(call):
+    print(f"DEBUG: Получен callback {call.data}")
     chat_id = call.message.chat.id
     user = call.from_user
     mode = call.data.replace("start_mode_", "", 1)
@@ -383,23 +387,22 @@ def start_selected_game_mode(call):
         bot.answer_callback_query(call.id, "Игра уже запущена!", show_alert=True)
         return
 
-    # ✅ Отвечаем СРАЗУ, чтобы не висел спиннер
     bot.answer_callback_query(call.id, "Игра запускается...")
 
-    # Удаление меню — в try, если не получится, играть это не помешает
     try:
         bot.delete_message(chat_id, call.message.message_id)
     except Exception as e:
         print(f"Не смог удалить меню: {e}")
 
     try:
-        send_croc_round_message(chat_id, user.id, user.first_name, mode, "🎉 **Игра запущена!**\n\n")
+        send_croc_round_message(chat_id, user.id, user.first_name, mode, "🎉 <b>Игра запущена!</b>\n\n")
     except Exception as e:
         print(f"Ошибка запуска раунда: {e}")
         bot.send_message(chat_id, "❌ Не удалось запустить игру, попробуй ещё раз.")
 
 @bot.callback_query_handler(func=lambda call: call.data == "croc_show_word")
 def croc_show_word(call):
+    print(f"DEBUG: Получен callback {call.data}")
     chat_id = call.message.chat.id
     if chat_id not in CROCODILE_GAMES:
         bot.answer_callback_query(call.id, "Эта игра уже закончилась!", show_alert=True)
@@ -407,13 +410,15 @@ def croc_show_word(call):
 
     game = CROCODILE_GAMES[chat_id]
     if call.from_user.id != game["host_id"]:
-        bot.answer_callback_query(call.id, f"Эй! Ты не ведущий, тебе смотреть нельзя! Ведущий: {game['host_name']} 😡", show_alert=True)
+        safe_name = html.escape(game['host_name'])
+        bot.answer_callback_query(call.id, f"Эй! Ты не ведущий, тебе смотреть нельзя! Ведущий: {safe_name} 😡", show_alert=True)
         return
 
     bot.answer_callback_query(call.id, f"Твоя цель:\n\n{game['display_word'].upper()}\n\nОбъясни это остальным!", show_alert=True)
 
 @bot.callback_query_handler(func=lambda call: call.data == "croc_skip_word")
 def croc_skip_word(call):
+    print(f"DEBUG: Получен callback {call.data}")
     chat_id = call.message.chat.id
     if chat_id not in CROCODILE_GAMES:
         bot.answer_callback_query(call.id, "Игра не активна!", show_alert=True)
@@ -429,10 +434,12 @@ def croc_skip_word(call):
     game["answers"] = answers
 
     bot.answer_callback_query(call.id, "Новое слово выбрано! Нажми 'Загаданное слово', чтобы узнать его.", show_alert=True)
-    bot.send_message(chat_id, f"🔄 **{game['host_name']}** поменял(а) слово! Отгадываем заново!", parse_mode="Markdown")
+    safe_name = html.escape(game['host_name'])
+    bot.send_message(chat_id, f"🔄 <b>{safe_name}</b> поменял(а) слово! Отгадываем заново!", parse_mode="HTML")
 
 @bot.callback_query_handler(func=lambda call: call.data == "croc_change_mode")
 def croc_change_mode(call):
+    print(f"DEBUG: Получен callback {call.data}")
     chat_id = call.message.chat.id
     if chat_id not in CROCODILE_GAMES:
         bot.answer_callback_query(call.id, "Игра не активна!", show_alert=True)
@@ -451,7 +458,8 @@ def croc_change_mode(call):
 
     mode_title = "🎮 Отгадай игру" if new_mode == "games" else "🐊 Классический Крокодил"
     bot.answer_callback_query(call.id, f"Режим изменен на: {mode_title}", show_alert=True)
-    bot.send_message(chat_id, f"🔀 **{game['host_name']}** сменил(а) режим на **{mode_title}**! Слово обновлено.", parse_mode="Markdown")
+    safe_name = html.escape(game['host_name'])
+    bot.send_message(chat_id, f"🔀 <b>{safe_name}</b> сменил(а) режим на <b>{mode_title}</b>! Слово обновлено.", parse_mode="HTML")
 
 def generate_word(mode):
     if mode == "classic":
@@ -472,38 +480,40 @@ def generate_word(mode):
 def show_balance(message):
     u_data = get_user_data(message.from_user.id)
     update_passive_coins(u_data)
+    safe_name = html.escape(message.from_user.first_name)
     bot.send_message(
         message.chat.id,
-        f"🪙 Баланс пользователя **{message.from_user.first_name}**: `{u_data['coins']} некокойнов`",
-        parse_mode="Markdown",
+        f"🪙 Баланс пользователя <b>{safe_name}</b>: <code>{u_data['coins']} некокойнов</code>",
+        parse_mode="HTML",
         reply_to_message_id=message.message_id
     )
 
 @bot.message_handler(func=lambda m: m.text and m.text.lower().strip() == "профиль")
 def show_profile(message):
     user = message.from_user
+    safe_name = html.escape(user.first_name)
     u_data = get_user_data(user.id)
     update_passive_coins(u_data)
 
     inv = ", ".join([SHOP_ITEMS[item]["name"] for item in u_data["inventory"]]) or "Пусто"
 
     text = (
-        f"👤 **Профиль: {user.first_name}**\n\n"
-        f"🪙 Баланс: `{u_data['coins']} некокойнов`\n"
+        f"👤 <b>Профиль: {safe_name}</b>\n\n"
+        f"🪙 Баланс: <code>{u_data['coins']} некокойнов</code>\n"
         f"🎒 Инвентарь: {inv}\n"
     )
 
     now = time.time()
     if u_data["ramen_expires_at"] > now:
         rem_min = int((u_data["ramen_expires_at"] - now) // 60)
-        text += f"🍜 Рамен активен еще: `{rem_min} мин.`\n"
+        text += f"🍜 Рамен активен еще: <code>{rem_min} мин.</code>\n"
 
     text += (
         f"\n📊 Статистика РП:\n"
-        f" • Всего действий: `{u_data['stats']['actions']}`\n"
-        f" • Объятий: `{u_data['stats']['hugs']}`\n"
-        f" • Поцелуев: `{u_data['stats']['kisses']}`\n\n"
-        "🛠 **Управление эффектами:**\nнажимай на кнопки ниже, чтобы включить или выключить их:"
+        f" • Всего действий: <code>{u_data['stats']['actions']}</code>\n"
+        f" • Объятий: <code>{u_data['stats']['hugs']}</code>\n"
+        f" • Поцелуев: <code>{u_data['stats']['kisses']}</code>\n\n"
+        "🛠 <b>Управление эффектами:</b>\nнажимай на кнопки ниже, чтобы включить или выключить их:"
     )
 
     markup = InlineKeyboardMarkup(row_width=1)
@@ -516,10 +526,11 @@ def show_profile(message):
     if not u_data["inventory"]:
         markup.add(InlineKeyboardButton("🛍 В магазин", callback_data="goto_shop"))
 
-    bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_markup=markup, reply_to_message_id=message.message_id)
+    bot.send_message(message.chat.id, text, parse_mode="HTML", reply_markup=markup, reply_to_message_id=message.message_id)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("toggle_"))
 def toggle_effect(call):
+    print(f"DEBUG: Получен callback {call.data}")
     user_id = call.from_user.id
     item_key = call.data.replace("toggle_", "", 1)
     u_data = get_user_data(user_id)
@@ -545,16 +556,16 @@ def show_profile_edited(message, user_id):
     inv = ", ".join([SHOP_ITEMS[item]["name"] for item in u_data["inventory"]]) or "Пусто"
 
     text = (
-        f"👤 **Профиль**\n\n"
-        f"🪙 Баланс: `{u_data['coins']} некокойнов`\n"
+        f"👤 <b>Профиль</b>\n\n"
+        f"🪙 Баланс: <code>{u_data['coins']} некокойнов</code>\n"
         f"🎒 Инвентарь: {inv}\n"
     )
     now = time.time()
     if u_data["ramen_expires_at"] > now:
         rem_min = int((u_data["ramen_expires_at"] - now) // 60)
-        text += f"🍜 Рамен активен еще: `{rem_min} мин.`\n"
+        text += f"🍜 Рамен активен еще: <code>{rem_min} мин.</code>\n"
 
-    text += "\n🛠 **Управление эффектами:**"
+    text += "\n🛠 <b>Управление эффектами:</b>"
 
     markup = InlineKeyboardMarkup(row_width=1)
     for item_key in u_data["inventory"]:
@@ -563,7 +574,7 @@ def show_profile_edited(message, user_id):
         status_icon = "🟢 ВКЛ" if is_active else "🔴 ВЫКЛ"
         markup.add(InlineKeyboardButton(f"{item_name} [{status_icon}]", callback_data=f"toggle_{item_key}"))
 
-    bot.edit_message_text(text, message.chat.id, message.message_id, parse_mode="Markdown", reply_markup=markup)
+    bot.edit_message_text(text, message.chat.id, message.message_id, parse_mode="HTML", reply_markup=markup)
 
 @bot.message_handler(func=lambda m: m.text and m.text.lower().strip() == "магазин")
 def show_shop(message):
@@ -573,31 +584,32 @@ def show_shop(message):
 
     bot.send_message(
         message.chat.id,
-        "🛍 **Неко-Магазин товаров**\n\n(Купить каждый товар можно 1 раз в сутки):\nВыбирай позицию:",
+        "🛍 <b>Неко-Магазин товаров</b>\n\n(Купить каждый товар можно 1 раз в сутки):\nВыбирай позицию:",
         reply_markup=markup,
-        parse_mode="Markdown"
+        parse_mode="HTML"
     )
 
 @bot.callback_query_handler(func=lambda call: call.data == "goto_shop")
 def callback_goto_shop(call):
-    # ✅ Отвечаем на коллбэк, чтобы не висел спиннер
+    print(f"DEBUG: Получен callback {call.data}")
     bot.answer_callback_query(call.id)
     markup = InlineKeyboardMarkup(row_width=1)
     for key, item in SHOP_ITEMS.items():
         markup.add(InlineKeyboardButton(f"{item['name']} — {item['price']} 🪙", callback_data=f"buy_{key}"))
     try:
         bot.edit_message_text(
-            "🛍 **Неко-Магазин товаров**\n\n(Купить каждый товар можно 1 раз в сутки):\nВыбирай позицию:",
+            "🛍 <b>Неко-Магазин товаров</b>\n\n(Купить каждый товар можно 1 раз в сутки):\nВыбирай позицию:",
             call.message.chat.id,
             call.message.message_id,
             reply_markup=markup,
-            parse_mode="Markdown"
+            parse_mode="HTML"
         )
     except Exception as e:
         print(f"Не смог открыть магазин: {e}")
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("buy_"))
 def buy_item(call):
+    print(f"DEBUG: Получен callback {call.data}")
     user_id = call.from_user.id
     item_key = call.data.replace("buy_", "", 1)
     u_data = get_user_data(user_id)
@@ -634,12 +646,15 @@ def buy_item(call):
             u_data["inventory"].append(item_key)
         bot.answer_callback_query(call.id, f"Успешная покупка: {item['name']}!", show_alert=True)
 
-    bot.edit_message_text(
-        f"✅ Вы успешно приобрели **{item['name']}**!\nПроверить инвентарь и включить эффект можно написав слово `профиль`.",
-        call.message.chat.id,
-        call.message.message_id,
-        parse_mode="Markdown"
-    )
+    try:
+        bot.edit_message_text(
+            f"✅ Вы успешно приобрели <b>{item['name']}</b>!\nПроверить инвентарь и включить эффект можно написав слово <code>профиль</code>.",
+            call.message.chat.id,
+            call.message.message_id,
+            parse_mode="HTML"
+        )
+    except Exception as e:
+        print(f"Не смог обновить сообщение магазина: {e}")
 
 @bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in ["награда", "/daily"])
 def daily_reward(message):
@@ -656,7 +671,7 @@ def daily_reward(message):
     u_data["last_daily"] = now
     reward = 50
     u_data["coins"] += reward
-    bot.send_message(message.chat.id, f"🎁 Ежедневная награда получена! Тебе начислено `{reward} некокойнов` 🪙", parse_mode="Markdown", reply_to_message_id=message.message_id)
+    bot.send_message(message.chat.id, f"🎁 Ежедневная награда получена! Тебе начислено <code>{reward} некокойнов</code> 🪙", parse_mode="HTML", reply_to_message_id=message.message_id)
 
 @bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in ["кастомрп", "кастом", "рппанель"])
 def rp_panel_word(message):
@@ -669,13 +684,14 @@ def rp_panel_word(message):
     )
     bot.send_message(
         chat_id,
-        "🛠 **Панель кастомных РП-команд**\n\nВыбирай нужное действие:",
+        "🛠 <b>Панель кастомных РП-команд</b>\n\nВыбирай нужное действие:",
         reply_markup=markup,
-        parse_mode="Markdown"
+        parse_mode="HTML"
     )
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("rp_menu_"))
 def rp_menu_callback(call):
+    print(f"DEBUG: Получен callback {call.data}")
     chat_id = call.message.chat.id
     user_id = call.from_user.id
     data = call.data
@@ -685,10 +701,10 @@ def rp_menu_callback(call):
         bot.answer_callback_query(call.id)
         bot.send_message(
             chat_id,
-            "✍️ **Создание новой РП-команды**\n\n"
+            "✍️ <b>Создание новой РП-команды</b>\n\n"
             "Отправь в чат данные в формате:\n"
-            "`название | текст_для_двоих | текст_одного | ссылка_на_гифку`",
-            parse_mode="Markdown"
+            "<code>название | текст_для_двоих | текст_одного | ссылка_на_гифку</code>",
+            parse_mode="HTML"
         )
     elif data == "rp_menu_list":
         bot.answer_callback_query(call.id)
@@ -696,8 +712,8 @@ def rp_menu_callback(call):
         if not customs:
             bot.send_message(chat_id, "📜 В этом чате нет кастомных команд.")
         else:
-            lst = "\n".join([f"🔹 `{name}`" for name in customs.keys()])
-            bot.send_message(chat_id, f"📜 **Кастомные команды:**\n\n{lst}", parse_mode="Markdown")
+            lst = "\n".join([f"🔹 <code>{html.escape(name)}</code>" for name in customs.keys()])
+            bot.send_message(chat_id, f"📜 <b>Кастомные команды:</b>\n\n{lst}", parse_mode="HTML")
     elif data == "rp_menu_del":
         bot.answer_callback_query(call.id)
         customs = CHAT_CUSTOM_RP.get(chat_id, {})
@@ -707,16 +723,20 @@ def rp_menu_callback(call):
         markup = InlineKeyboardMarkup(row_width=2)
         buttons = [InlineKeyboardButton(name, callback_data=f"rp_del_{name}") for name in customs.keys()]
         markup.add(*buttons)
-        bot.send_message(chat_id, "🗑 **Выбери команду для удаления:**", reply_markup=markup, parse_mode="Markdown")
+        bot.send_message(chat_id, "🗑 <b>Выбери команду для удаления:</b>", reply_markup=markup, parse_mode="HTML")
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("rp_del_"))
 def rp_delete_callback(call):
+    print(f"DEBUG: Получен callback {call.data}")
     chat_id = call.message.chat.id
     cmd_name = call.data.replace("rp_del_", "", 1)
     if chat_id in CHAT_CUSTOM_RP and cmd_name in CHAT_CUSTOM_RP[chat_id]:
         del CHAT_CUSTOM_RP[chat_id][cmd_name]
         bot.answer_callback_query(call.id, f"Команда '{cmd_name}' удалена!")
-        bot.edit_message_text(f"🗑 Команда **{cmd_name}** удалена!", chat_id, call.message.message_id, parse_mode="Markdown")
+        try:
+            bot.edit_message_text(f"🗑 Команда <b>{html.escape(cmd_name)}</b> удалена!", chat_id, call.message.message_id, parse_mode="HTML")
+        except Exception as e:
+            print(f"Не смог изменить сообщение удаления: {e}")
     else:
         bot.answer_callback_query(call.id, "Команда не найдена.", show_alert=True)
 
@@ -728,17 +748,16 @@ def process_new_rp(message):
         return
     parts = message.text.split("|")
     if len(parts) < 4:
-        bot.send_message(chat_id, "❌ Ошибка формата! Нужно 4 части через `|`.", parse_mode="Markdown")
+        bot.send_message(chat_id, "❌ Ошибка формата! Нужно 4 части через <code>|</code>.", parse_mode="HTML")
         return
 
     name = parts[0].strip().lower()
 
-    # 🛡 Защита от слишком длинного имени (Telegram: callback_data ≤ 64 байт)
     if len(name) > 40:
         bot.send_message(chat_id, "❌ Слишком длинное название команды! Максимум 40 символов.", reply_to_message_id=message.message_id)
         return
     if "|" in name:
-        bot.send_message(chat_id, "❌ Название команды не должно содержать `|`.", parse_mode="Markdown", reply_to_message_id=message.message_id)
+        bot.send_message(chat_id, "❌ Название команды не должно содержать <code>|</code>.", parse_mode="HTML", reply_to_message_id=message.message_id)
         return
 
     CHAT_CUSTOM_RP.setdefault(chat_id, {})[name] = {
@@ -747,18 +766,18 @@ def process_new_rp(message):
         "solo_text": parts[2].strip(),
         "gifs": [parts[3].strip()]
     }
-    bot.send_message(chat_id, f"✅ Кастомная команда `{name}` добавлена!", parse_mode="Markdown", reply_to_message_id=message.message_id)
+    bot.send_message(chat_id, f"✅ Кастомная команда <code>{html.escape(name)}</code> добавлена!", parse_mode="HTML", reply_to_message_id=message.message_id)
 
 @bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in ["команды", "помощь", "/help"])
 def show_all_commands(message):
     text = (
-        "📜 **Список всех команд:**\n\n"
-        "🎭 **РП-команды:** поцеловать, обнять, погладить, укусить, покормить, оставить засос, флиртовать, трахнуть\n"
-        "🪙 **Экономика:** баланс, профиль, магазин, награда\n"
-        "🎮 **Игры:** крокодил, игры\n"
-        "🛠 **Кастом:** кастомрп (панель создания)"
+        "📜 <b>Список всех команд:</b>\n\n"
+        "🎭 <b>РП-команды:</b> поцеловать, обнять, погладить, укусить, покормить, оставить засос, флиртовать, трахнуть\n"
+        "🪙 <b>Экономика:</b> баланс, профиль, магазин, награда\n"
+        "🎮 <b>Игры:</b> крокодил, игры\n"
+        "🛠 <b>Кастом:</b> кастомрп (панель создания)"
     )
-    bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_to_message_id=message.message_id)
+    bot.send_message(message.chat.id, text, parse_mode="HTML", reply_to_message_id=message.message_id)
 
 def get_rp_action(message_text, chat_id):
     if not message_text:
@@ -778,6 +797,7 @@ def get_rp_action(message_text, chat_id):
 @bot.message_handler(func=lambda m: get_rp_action(m.text, m.chat.id) is not None)
 def handle_rp(message):
     user = message.from_user
+    safe_sender = html.escape(user.first_name)
     u_data = get_user_data(user.id)
     update_passive_coins(u_data)
 
@@ -790,13 +810,12 @@ def handle_rp(message):
         u_data["stats"]["kisses"] += 1
 
     action_data = get_rp_action(message.text, message.chat.id)
-    sender = user.first_name
 
     if message.reply_to_message:
-        target = message.reply_to_message.from_user.first_name
-        text = action_data["target_text"].format(sender=sender, target=target)
+        safe_target = html.escape(message.reply_to_message.from_user.first_name)
+        text = action_data["target_text"].format(sender=safe_sender, target=safe_target)
     else:
-        text = action_data["solo_text"].format(sender=sender)
+        text = action_data["solo_text"].format(sender=safe_sender)
 
     prefix = ""
     if "ears" in u_data["active_effects"]:
@@ -837,8 +856,8 @@ def handle_all_messages(message):
         if text in ["сдаемся", "стоп крокодил", "стоп"]:
             bot.send_message(
                 chat_id,
-                f"🛑 **Игра остановлена!**\nЗагаданное было: **{game['display_word'].upper()}**",
-                parse_mode="Markdown"
+                f"🛑 <b>Игра остановлена!</b>\nЗагаданное было: <b>{game['display_word'].upper()}</b>",
+                parse_mode="HTML"
             )
             del CROCODILE_GAMES[chat_id]
         elif text in game["answers"]:
@@ -848,11 +867,12 @@ def handle_all_messages(message):
                 reward = 100
                 u_data["coins"] += reward
                 current_mode = game["mode"]
+                safe_name = html.escape(message.from_user.first_name)
 
                 win_text = (
-                    f"🎉 **{message.from_user.first_name}** угадал(а) **{game['display_word'].upper()}**!\n"
-                    f"Награда: `{reward} некокойнов` 🪙\n"
-                    f"🏆 Теперь **{message.from_user.first_name}** становится новым ведущим!\n\n"
+                    f"🎉 <b>{safe_name}</b> угадал(а) <b>{game['display_word'].upper()}</b>!\n"
+                    f"Награда: <code>{reward} некокойнов</code> 🪙\n"
+                    f"🏆 Теперь <b>{safe_name}</b> становится новым ведущим!\n\n"
                 )
 
                 del CROCODILE_GAMES[chat_id]
@@ -868,7 +888,6 @@ def run_flask():
 if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
 
-    # 🧹 Убираем возможный вебхук — иначе callback_query может теряться
     try:
         bot.delete_webhook()
         print("✅ Webhook удалён (если был)")
