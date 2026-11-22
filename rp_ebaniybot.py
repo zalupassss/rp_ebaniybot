@@ -9,7 +9,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from flask import Flask
 
 # 🔑 Токен бота
-TOKEN = "8892392566:AAE0rSE7QW21zfgZsKhIpf9NrU4OjxR52HY"
+TOKEN = "8892392566:AAGCtSt7USOBgGh14jQT7PZv24CzP104g1c"
 
 # 🛡 Глобальный обработчик ошибок
 def global_exception_handler(exception):
