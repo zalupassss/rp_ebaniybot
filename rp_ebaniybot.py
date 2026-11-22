@@ -77,7 +77,7 @@ RP_COMMANDS = {
         "aliases": ["покормить", "/feed", "!покормить", "накормить"],
         "target_text": "🍲 <b>{sender}</b> вкусно кормит <b>{target}</b>! Теперь кто-то сыт и доволен 😊",
         "solo_text": "🍲 <b>{sender}</b> вкусно кушает! Приятного аппетита 😋",
-        "gifs": ["https://media.tenor.com/gIbE9pZ7raYAAAAC/wataten-watashi-ni-tenshi-ga-maiorita.gif"],
+        "gifs": ["https://media1.tenor.com/gIbE9pZ7raYAAAAC/wataten-watashi-ni-tenshi-ga-maiorita.gif"],
     },
     "оставить засос": {
         "aliases": ["оставить засос", "оставить_засос", "!оставить засос"],
@@ -89,13 +89,13 @@ RP_COMMANDS = {
         "aliases": ["флиртовать", "флирт", "/flirt", "!флирт"],
         "target_text": "😏 <b>{sender}</b> игриво флиртует с <b>{target}</b>~",
         "solo_text": "😏 <b>{sender}</b> тренирует навыки флирта перед зеркалом!",
-        "gifs": ["https://media.tenor.com/TlFyVb6dRqkAAAAC/anime-horusultra.gif"],
+        "gifs": ["https://media1.tenor.com/m/TlFyVb6dRqkAAAAC/anime-horusultra.gif"],
     },
     "трахнуть": {
         "aliases": ["трахнуть", "выебать", "/sex", "!трахнуть"],
         "target_text": "🔥 <b>{sender}</b> нежно трахнул <b>{target}</b>!",
         "solo_text": "🔥 <b>{sender}</b> но член не встал...",
-        "gifs": ["https://media.tenor.com/SiL8iSajNNQAAAAi/hi.gif"],
+        "gifs": ["https://media1.tenor.com/m/SiL8iSajNNQAAAAi/hi.gif"],
     },
     "засосать": {
         "aliases": ["засосать", "!засосать", "/засосать"],
@@ -117,7 +117,7 @@ USER_ADDING_STATE = {}
 USERS_ECONOMY = {}
 CROCODILE_GAMES = {}
 HANGMAN_GAMES = {}
-TTT_GAMES = {} # {chat_id: {"board": ["", "", ...], "user_id": 123}}
+TTT_GAMES = {}
 
 # 🪢 Графика для Виселицы (0 - 6 ошибок)
 HANGMAN_ART = [
@@ -512,11 +512,11 @@ def generate_word(mode):
 @bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in BOT_COMMANDS["hangman"])
 def start_hangman(message):
     chat_id = message.chat.id
-    
+
     if chat_id in HANGMAN_GAMES:
         bot.send_message(chat_id, "🪢 Игра в виселицу уже идет! Называйте буквы или напишите <code>стоп</code>, чтобы сдаться.", parse_mode="HTML")
         return
-        
+
     if chat_id in CROCODILE_GAMES or chat_id in TTT_GAMES:
         bot.send_message(chat_id, "🐊 Сначала закончите другую игру (напишите <code>стоп</code>).", parse_mode="HTML")
         return
@@ -526,16 +526,16 @@ def start_hangman(message):
          word_pool = ["виселица", "телеграм", "программирование", "крокодил"]
 
     word = random.choice(word_pool)
-    
+
     HANGMAN_GAMES[chat_id] = {
         "word": word,
         "guessed_letters": set(),
         "mistakes": 0,
         "max_mistakes": 6
     }
-    
+
     hidden_word = " ".join(["_" if char not in HANGMAN_GAMES[chat_id]["guessed_letters"] else char for char in word])
-    
+
     text = (
         f"🪢 <b>Игра «Виселица» началась!</b>\n\n"
         f"Слово: <code>{hidden_word}</code>\n"
@@ -578,7 +578,7 @@ def bot_ttt_move(board):
             if check_ttt_win(board) == "⭕":
                 return
             board[i] = ""
-    
+
     # 2. Попытка заблокировать игрока
     for i in range(9):
         if board[i] == "":
@@ -587,7 +587,7 @@ def bot_ttt_move(board):
                 board[i] = "⭕"
                 return
             board[i] = ""
-            
+
     # 3. Случайный ход
     empty_cells = [i for i in range(9) if board[i] == ""]
     if empty_cells:
@@ -596,11 +596,11 @@ def bot_ttt_move(board):
 @bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in BOT_COMMANDS["ttt"])
 def start_ttt_menu(message):
     chat_id = message.chat.id
-    
+
     if chat_id in TTT_GAMES:
         bot.send_message(chat_id, "❌⭕ Игра уже идет или ждет соперника! Чтобы отменить, напишите <code>стоп</code>.", parse_mode="HTML", reply_to_message_id=message.message_id)
         return
-        
+
     if chat_id in CROCODILE_GAMES or chat_id in HANGMAN_GAMES:
         bot.send_message(chat_id, "Сначала закончите текущую игру (напишите <code>стоп</code>).", parse_mode="HTML")
         return
@@ -610,7 +610,7 @@ def start_ttt_menu(message):
         InlineKeyboardButton("🤖 Против бота", callback_data=f"ttt_mode_bot_{message.from_user.id}"),
         InlineKeyboardButton("👥 Против игрока в чате", callback_data=f"ttt_mode_pvp_{message.from_user.id}")
     )
-    
+
     bot.send_message(
         chat_id,
         "❌⭕ <b>Крестики-нолики!</b>\n\nВыбери режим игры:",
@@ -624,7 +624,7 @@ def select_ttt_mode(call):
     parts = call.data.split("_")
     mode = parts[2]
     creator_id = int(parts[3])
-    
+
     if call.from_user.id != creator_id:
         bot.answer_callback_query(call.id, "Эту игру запустил другой игрок! Напиши 'крестики', чтобы создать свою.", show_alert=True)
         return
@@ -662,7 +662,7 @@ def select_ttt_mode(call):
         }
         markup = InlineKeyboardMarkup()
         markup.add(InlineKeyboardButton("⚔️ Принять вызов", callback_data="ttt_join"))
-        
+
         bot.edit_message_text(
             f"❌⭕ <b>Вызов на дуэль в Крестики-нолики!</b>\n\n"
             f"Игрок <b>{safe_name}</b> (❌) ищет соперника!\n"
@@ -701,11 +701,11 @@ def join_ttt_pvp(call):
 @bot.callback_query_handler(func=lambda call: call.data.startswith("ttt_move_"))
 def handle_ttt_move(call):
     chat_id = call.message.chat.id
-    
+
     if chat_id not in TTT_GAMES:
         bot.answer_callback_query(call.id, "Игра уже закончена!", show_alert=True)
         return
-        
+
     game = TTT_GAMES[chat_id]
     cell_idx = int(call.data.split("_")[2])
     user_id = call.from_user.id
@@ -719,10 +719,10 @@ def handle_ttt_move(call):
         if game["board"][cell_idx] != "":
             bot.answer_callback_query(call.id, "Клетка уже занята!", show_alert=True)
             return
-            
+
         bot.answer_callback_query(call.id)
         game["board"][cell_idx] = "❌"
-        
+
         if check_ttt_win(game["board"]) == "❌":
             u_data = get_user_data(user_id)
             u_data["coins"] += 30
@@ -732,19 +732,19 @@ def handle_ttt_move(call):
             )
             del TTT_GAMES[chat_id]
             return
-            
+
         if "" not in game["board"]:
             bot.edit_message_text("🤝 <b>Ничья!</b> Достойная игра.", chat_id, call.message.message_id, parse_mode="HTML")
             del TTT_GAMES[chat_id]
             return
 
         bot_ttt_move(game["board"])
-        
+
         if check_ttt_win(game["board"]) == "⭕":
             bot.edit_message_text("🤖 <b>Бот победил!</b> В следующий раз повезет больше.", chat_id, call.message.message_id, parse_mode="HTML")
             del TTT_GAMES[chat_id]
             return
-            
+
         if "" not in game["board"]:
             bot.edit_message_text("🤝 <b>Ничья!</b> Достойная игра.", chat_id, call.message.message_id, parse_mode="HTML")
             del TTT_GAMES[chat_id]
@@ -777,7 +777,7 @@ def handle_ttt_move(call):
             winner_name = game["p1_name"] if symbol == "❌" else game["p2_name"]
             u_data = get_user_data(winner_id)
             u_data["coins"] += 50
-            
+
             bot.edit_message_text(
                 f"🏆 <b>ПОБЕДА!</b>\n\n"
                 f"{symbol} <b>{winner_name}</b> побеждает в дуэли!\n"
@@ -809,6 +809,7 @@ def handle_ttt_move(call):
             reply_markup=get_ttt_markup(game["board"]),
             parse_mode="HTML"
         )
+
 
 # ==========================================
 # ЭКОНОМИКА, МАГАЗИН И РП
@@ -1174,7 +1175,7 @@ def handle_rp(message):
         bot.send_message(message.chat.id, text=text, parse_mode="HTML", reply_to_message_id=message.message_id)
 
 # ==========================================
-# ОБЩИЙ ОБРАБОТЧИК (Виселица + Проверка ответов в Крокодиле + Авто-смена ведущего)
+# ОБЩИЙ ОБРАБОТЧИК (Крестики стоп + Виселица + Проверка ответов в Крокодиле + Авто-смена ведущего)
 # ==========================================
 @bot.message_handler(func=lambda m: True)
 def handle_all_messages(message):
@@ -1188,14 +1189,20 @@ def handle_all_messages(message):
     u_data = get_user_data(user_id)
     update_passive_coins(u_data)
 
+    # ❌⭕ ОСТАНОВКА КРЕСТИКОВ-НОЛИКОВ
+    if chat_id in TTT_GAMES and text in ["стоп", "сдаемся", "стоп крестики"]:
+        bot.send_message(chat_id, "🛑 <b>Игра в Крестики-нолики остановлена!</b>", parse_mode="HTML")
+        del TTT_GAMES[chat_id]
+        return
+
     # 🪢 ЛОГИКА ВИСЕЛИЦЫ
     if chat_id in HANGMAN_GAMES:
         game = HANGMAN_GAMES[chat_id]
-        
+
         if text in ["сдаемся", "стоп виселица", "стоп"]:
             bot.send_message(
-                chat_id, 
-                f"🛑 <b>Игра в Виселицу остановлена!</b>\nЗагаданное слово было: <b>{game['word'].upper()}</b>", 
+                chat_id,
+                f"🛑 <b>Игра в Виселицу остановлена!</b>\nЗагаданное слово было: <b>{game['word'].upper()}</b>",
                 parse_mode="HTML"
             )
             del HANGMAN_GAMES[chat_id]
