@@ -8,7 +8,7 @@ import requests
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from flask import Flask
 
-# 🔑 Токен бота теперь берется из переменных окружения (безопасно)
+# 🔑 Токен бота берется из переменных окружения (безопасно)
 TOKEN = os.environ.get("BOT_TOKEN")
 
 # Проверка, что токен вообще есть
@@ -23,8 +23,21 @@ def global_exception_handler(exception):
     print(f"❌ EXCEPTION в обработчике: {type(exception).__name__}: {exception}")
     traceback.print_exc()
 
-# ✅ Передаем обработчик прямо в конструктор TeleBot
 bot = telebot.TeleBot(TOKEN, exception_handler=global_exception_handler)
+
+# ==========================================
+# 🛠 НАСТРОЙКА АЛИАСОВ ДЛЯ ОБЫЧНЫХ КОМАНД
+# ==========================================
+BOT_COMMANDS = {
+    "games": ["крокодил"],
+    "hangman": ["виселица", "виселицу", "hangman"],
+    "balance": ["баланс", "монеты", "бабки"],
+    "profile": ["профиль", "мойпрофиль", "статистика", "инвентарь", "стата"],
+    "shop": ["магазин", "шоп", "магаз", "лавка"],
+    "daily": ["награда", "/daily", "бонус", "дейли", "ежедневка"],
+    "custom_rp": ["кастомрп", "кастом", "рппанель", "рп", "рп_панель"],
+    "help": ["команды", "помощь", "/help", "хелп", "инфо", "помощьмне"]
+}
 
 # Веб-сервер для хостинга (Render)
 app = Flask(__name__)
@@ -87,7 +100,7 @@ RP_COMMANDS = {
         "aliases": ["засосать", "!засосать", "/засосать"],
         "target_text": "🔥 <b>{sender}</b> нежно засосал <b>{target}</b>!",
         "solo_text": "🔥 <b>{sender}</b> засосал подушку...",
-        "gifs": ["https://media.tenor.com/xYUjLVz6rJoAAAAC/mhel.gif"],
+        "gifs": ["https://media1.tenor.com/m/xYUjLVz6rJoAAAAC/mhel.gif"],
     },
     "владик трахни меня": {
         "aliases": ["владик", "джизус", "джи"],
@@ -102,6 +115,18 @@ CHAT_CUSTOM_RP = {}
 USER_ADDING_STATE = {}
 USERS_ECONOMY = {}
 CROCODILE_GAMES = {}
+HANGMAN_GAMES = {}
+
+# 🪢 Графика для Виселицы (0 - 6 ошибок)
+HANGMAN_ART = [
+    "```\n\n\n\n\n```",
+    "```\n  O\n\n\n\n```",
+    "```\n  O\n  |\n\n\n```",
+    "```\n  O\n /|\n\n\n```",
+    "```\n  O\n /|\\\n\n\n```",
+    "```\n  O\n /|\\\n / \n\n```",
+    "```\n  O\n /|\\\n / \\\n\n```"
+]
 
 # 🐊 Классическая база слов
 CROCODILE_WORDS = [
@@ -358,7 +383,7 @@ def send_croc_round_message(chat_id, host_id, host_name, mode, prefix_text=""):
     bot.send_message(chat_id, msg_text, reply_markup=markup, parse_mode="HTML")
 
 
-@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in ["крокодил", "игры", "игра"])
+@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in BOT_COMMANDS["games"])
 def show_game_menu(message):
     chat_id = message.chat.id
     if chat_id in CROCODILE_GAMES:
@@ -479,10 +504,54 @@ def generate_word(mode):
         return game_item["display"], game_item["answers"]
 
 # ==========================================
+# 🪢 ЛОГИКА ИГРЫ ВИСЕЛИЦА
+# ==========================================
+
+@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in BOT_COMMANDS["hangman"])
+def start_hangman(message):
+    chat_id = message.chat.id
+    
+    if chat_id in HANGMAN_GAMES:
+        bot.send_message(chat_id, "🪢 Игра в виселицу уже идет! Называйте буквы или напишите <code>стоп</code>, чтобы сдаться.", parse_mode="HTML")
+        return
+        
+    if chat_id in CROCODILE_GAMES:
+        bot.send_message(chat_id, "🐊 Сначала закончите игру в Крокодила (напишите <code>стоп</code>).", parse_mode="HTML")
+        return
+
+    # Берем слово из твоей базы (фильтруем только буквы без пробелов и дефисов)
+    word_pool = [w.lower() for w in (ONLINE_WORDS if ONLINE_WORDS else CROCODILE_WORDS) if w.isalpha()]
+    if not word_pool:
+         word_pool = ["виселица", "телеграм", "программирование", "крокодил"] # Запасной вариант
+
+    word = random.choice(word_pool)
+    
+    HANGMAN_GAMES[chat_id] = {
+        "word": word,
+        "guessed_letters": set(),
+        "mistakes": 0,
+        "max_mistakes": 6
+    }
+    
+    # Формируем скрытое слово
+    hidden_word = " ".join(["_" if char not in HANGMAN_GAMES[chat_id]["guessed_letters"] else char for char in word])
+    
+    text = (
+        f"🪢 <b>Игра «Виселица» началась!</b>\n\n"
+        f"Слово: <code>{hidden_word}</code>\n"
+        f"Ошибки: {HANGMAN_GAMES[chat_id]['mistakes']} / 6\n\n"
+        f"{HANGMAN_ART[0]}\n"
+        f"<i>Просто пишите буквы в чат! Если ошибетесь 6 раз — проиграете.</i>\n\n"
+        f"Чтобы закончить, напишите <code>стоп</code>."
+    )
+    bot.send_message(chat_id, text, parse_mode="HTML")
+
+
+# ==========================================
 # ЭКОНОМИКА, МАГАЗИН И РП
 # ==========================================
 
-@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in ["баланс", "монеты", "коинс"])
+@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in BOT_COMMANDS["balance"])
 def show_balance(message):
     u_data = get_user_data(message.from_user.id)
     update_passive_coins(u_data)
@@ -494,7 +563,7 @@ def show_balance(message):
         reply_to_message_id=message.message_id
     )
 
-@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() == "профиль")
+@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in BOT_COMMANDS["profile"])
 def show_profile(message):
     user = message.from_user
     safe_name = html.escape(user.first_name)
@@ -582,7 +651,7 @@ def show_profile_edited(message, user_id):
 
     bot.edit_message_text(text, message.chat.id, message.message_id, parse_mode="HTML", reply_markup=markup)
 
-@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() == "магазин")
+@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in BOT_COMMANDS["shop"])
 def show_shop(message):
     markup = InlineKeyboardMarkup(row_width=1)
     for key, item in SHOP_ITEMS.items():
@@ -662,7 +731,7 @@ def buy_item(call):
     except Exception as e:
         print(f"Не смог обновить сообщение магазина: {e}")
 
-@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in ["награда", "/daily"])
+@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in BOT_COMMANDS["daily"])
 def daily_reward(message):
     user_id = message.from_user.id
     u_data = get_user_data(user_id)
@@ -679,7 +748,7 @@ def daily_reward(message):
     u_data["coins"] += reward
     bot.send_message(message.chat.id, f"🎁 Ежедневная награда получена! Тебе начислено <code>{reward} некокойнов</code> 🪙", parse_mode="HTML", reply_to_message_id=message.message_id)
 
-@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in ["кастомрп", "кастом", "рппанель"])
+@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in BOT_COMMANDS["custom_rp"])
 def rp_panel_word(message):
     chat_id = message.chat.id
     markup = InlineKeyboardMarkup(row_width=1)
@@ -774,13 +843,13 @@ def process_new_rp(message):
     }
     bot.send_message(chat_id, f"✅ Кастомная команда <code>{html.escape(name)}</code> добавлена!", parse_mode="HTML", reply_to_message_id=message.message_id)
 
-@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in ["команды", "помощь", "/help"])
+@bot.message_handler(func=lambda m: m.text and m.text.lower().strip() in BOT_COMMANDS["help"])
 def show_all_commands(message):
     text = (
         "📜 <b>Список всех команд:</b>\n\n"
         "🎭 <b>РП-команды:</b> поцеловать, обнять, погладить, укусить, покормить, оставить засос, флиртовать, трахнуть\n"
         "🪙 <b>Экономика:</b> баланс, профиль, магазин, награда\n"
-        "🎮 <b>Игры:</b> крокодил, игры\n"
+        "🎮 <b>Игры:</b> крокодил, виселица\n"
         "🛠 <b>Кастом:</b> кастомрп (панель создания)"
     )
     bot.send_message(message.chat.id, text, parse_mode="HTML", reply_to_message_id=message.message_id)
@@ -842,7 +911,7 @@ def handle_rp(message):
         bot.send_message(message.chat.id, text=text, parse_mode="HTML", reply_to_message_id=message.message_id)
 
 # ==========================================
-# ОБЩИЙ ОБРАБОТЧИК (Проверка ответов в игре + Авто-смена ведущего)
+# ОБЩИЙ ОБРАБОТЧИК (Виселица + Проверка ответов в Крокодиле + Авто-смена ведущего)
 # ==========================================
 @bot.message_handler(func=lambda m: True)
 def handle_all_messages(message):
@@ -856,6 +925,66 @@ def handle_all_messages(message):
     u_data = get_user_data(user_id)
     update_passive_coins(u_data)
 
+    # 🪢 ЛОГИКА ВИСЕЛИЦЫ
+    if chat_id in HANGMAN_GAMES:
+        game = HANGMAN_GAMES[chat_id]
+        
+        if text in ["сдаемся", "стоп виселица", "стоп"]:
+            bot.send_message(
+                chat_id, 
+                f"🛑 <b>Игра в Виселицу остановлена!</b>\nЗагаданное слово было: <b>{game['word'].upper()}</b>", 
+                parse_mode="HTML"
+            )
+            del HANGMAN_GAMES[chat_id]
+            return
+
+        # Если написали одну букву
+        if len(text) == 1 and text.isalpha():
+            if text in game["guessed_letters"]:
+                bot.send_message(chat_id, "Эту букву уже называли! Выбери другую.", reply_to_message_id=message.message_id)
+                return
+
+            game["guessed_letters"].add(text)
+
+            # Проверяем, есть ли буква в слове
+            if text in game["word"]:
+                # Проверяем, выиграли ли
+                if all(char in game["guessed_letters"] for char in game["word"]):
+                    reward = 50
+                    u_data["coins"] += reward
+                    safe_name = html.escape(message.from_user.first_name)
+                    bot.send_message(
+                        chat_id,
+                        f"🎉 <b>ПОБЕДА!</b> <b>{safe_name}</b> угадал(а) последнюю букву и спас(ла) человечка!\n\n"
+                        f"Загаданное слово: <b>{game['word'].upper()}</b>\n"
+                        f"Награда: <code>{reward} некокойнов</code> 🪙",
+                        parse_mode="HTML"
+                    )
+                    del HANGMAN_GAMES[chat_id]
+                    return
+            else:
+                game["mistakes"] += 1
+                if game["mistakes"] >= game["max_mistakes"]:
+                    bot.send_message(
+                        chat_id,
+                        f"💀 <b>ИГРА ОКОНЧЕНА!</b> Вы превысили лимит ошибок.\n"
+                        f"Загаданное слово было: <b>{game['word'].upper()}</b>",
+                        parse_mode="HTML"
+                    )
+                    del HANGMAN_GAMES[chat_id]
+                    return
+
+            # Показываем обновленное состояние
+            hidden_word = " ".join([char if char in game["guessed_letters"] else "_" for char in game["word"]])
+            text_state = (
+                f"Слово: <code>{hidden_word}</code>\n"
+                f"Ошибки: {game['mistakes']} / {game['max_mistakes']}\n\n"
+                f"{HANGMAN_ART[game['mistakes']]}"
+            )
+            bot.send_message(chat_id, text_state, parse_mode="HTML")
+            return
+
+    # 🐊 ЛОГИКА КРОКОДИЛА
     if chat_id in CROCODILE_GAMES:
         game = CROCODILE_GAMES[chat_id]
 
