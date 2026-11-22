@@ -77,6 +77,12 @@ RP_COMMANDS = {
         "solo_text": "🔥 <b>{sender}</b> засосал подушку...",
         "gifs": ["https://media.tenor.com/xYUjLVz6rJoAAAAC/mhel.gif"],
     },
+    "владик трахни меня": {
+        "aliases": ["владик", "джизус", "джи"],
+        "target_text": "😏 Джизус трахнул <b>{sender}</b> и <b>{target}</b>!",
+        "solo_text": "😏 Джизус трахнул <b>{sender}</b>!",
+        "gifs": ["media\dzhizus.jpg"],
+    },
 }
 
 # 🛠 Базы данных в памяти
