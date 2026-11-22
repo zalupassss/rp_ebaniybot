@@ -17,7 +17,8 @@ def global_exception_handler(exception):
     print(f"❌ EXCEPTION в обработчике: {type(exception).__name__}: {exception}")
     traceback.print_exc()
 
-bot.exception_handler(global_exception_handler)
+# ✅ ИСПРАВЛЕНО: Используем set_exception_handler вместо вызова атрибута
+bot.set_exception_handler(global_exception_handler)
 
 # Веб-сервер для хостинга (Render)
 app = Flask(__name__)
