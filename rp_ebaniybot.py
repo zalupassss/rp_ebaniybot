@@ -81,7 +81,7 @@ RP_COMMANDS = {
         "aliases": ["владик", "джизус", "джи"],
         "target_text": "😏 Джизус трахнул <b>{sender}</b> и <b>{target}</b>!",
         "solo_text": "😏 Джизус трахнул <b>{sender}</b>!",
-        "gifs": ["media\dzhizus.jpg"],
+        "gifs": ["https://raw.githubusercontent.com/zalupassss/rp_ebaniybot/main/media/dzhizus.jpg"],
     },
 }
 
