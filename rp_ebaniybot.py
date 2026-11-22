@@ -8,8 +8,14 @@ import requests
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from flask import Flask
 
-# 🔑 Токен бота
-TOKEN = "8892392566:AAGCtSt7USOBgGh14jQT7PZv24CzP104g1c"
+# 🔑 Токен бота теперь берется из переменных окружения (безопасно)
+TOKEN = os.environ.get("BOT_TOKEN")
+
+# Проверка, что токен вообще есть
+if not TOKEN:
+    print("❌ КРИТИЧЕСКАЯ ОШИБКА: Переменная BOT_TOKEN не найдена!")
+    print("Добавь её в настройках Render: вкладка Environment -> Environment Variables.")
+    exit(1)
 
 # 🛡 Глобальный обработчик ошибок
 def global_exception_handler(exception):
