@@ -53,7 +53,7 @@ RP_COMMANDS = {
         "aliases": ["поцеловать", "чмокнуть", "!поцеловать", "поцелуй"],
         "target_text": "💋 <b>{sender}</b> целует <b>{target}</b>!",
         "solo_text": "💋 <b>{sender}</b> целует воздух... Кого-то явно не хватает!",
-        "gifs": ["https://media1.tenor.com/m/GAr1rMm39pcAAAAC/anime-hug.gif"],
+        "gifs": ["https://media1.tenor.com/m/QbYxVBr1p5MAAAAC/rikekoi-anime-love-kiss.gif"],
     },
     "обнять": {
         "aliases": ["обнять", "/hug", "!обнять"],
@@ -77,7 +77,7 @@ RP_COMMANDS = {
         "aliases": ["покормить", "/feed", "!покормить", "накормить"],
         "target_text": "🍲 <b>{sender}</b> вкусно кормит <b>{target}</b>! Теперь кто-то сыт и доволен 😊",
         "solo_text": "🍲 <b>{sender}</b> вкусно кушает! Приятного аппетита 😋",
-        "gifs": ["https://media1.tenor.com/gIbE9pZ7raYAAAAC/wataten-watashi-ni-tenshi-ga-maiorita.gif"],
+        "gifs": ["https://media1.tenor.com/m/pNAZyqwKAeQAAAAd/eating-chicken-fried-chicken.gif"],
     },
     "оставить засос": {
         "aliases": ["оставить засос", "оставить_засос", "!оставить засос"],
@@ -89,13 +89,13 @@ RP_COMMANDS = {
         "aliases": ["флиртовать", "флирт", "/flirt", "!флирт"],
         "target_text": "😏 <b>{sender}</b> игриво флиртует с <b>{target}</b>~",
         "solo_text": "😏 <b>{sender}</b> тренирует навыки флирта перед зеркалом!",
-        "gifs": ["https://media1.tenor.com/m/TlFyVb6dRqkAAAAC/anime-horusultra.gif"],
+        "gifs": ["https://media1.tenor.com/m/rr2tN5cyMWsAAAAC/anime-smug-devil-girl.gif"],
     },
     "трахнуть": {
         "aliases": ["трахнуть", "выебать", "/sex", "!трахнуть"],
         "target_text": "🔥 <b>{sender}</b> нежно трахнул <b>{target}</b>!",
-        "solo_text": "🔥 <b>{sender}</b> но член не встал...",
-        "gifs": ["https://media1.tenor.com/m/SiL8iSajNNQAAAAi/hi.gif"],
+        "solo_text": "🔥 <b>{sender}</b> попытался, но член не встал...",
+        "gifs": ["https://media1.tenor.com/m/xZNLVjKIT9cAAAAC/deme-demenishki.gif"],
     },
     "засосать": {
         "aliases": ["засосать", "!засосать", "/засосать"],
