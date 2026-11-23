@@ -77,7 +77,7 @@ RP_COMMANDS = {
         "aliases": ["покормить", "/feed", "!покормить", "накормить"],
         "target_text": "🍲 <b>{sender}</b> вкусно кормит <b>{target}</b>! Теперь кто-то сыт и доволен 😊",
         "solo_text": "🍲 <b>{sender}</b> вкусно кушает! Приятного аппетита 😋",
-        "gifs": ["https://media1.tenor.com/m/pNAZyqwKAeQAAAAd/eating-chicken-fried-chicken.gif"],
+        "gifs": ["https://raw.githubusercontent.com/zalupassss/rp_ebaniybot/main/media/eating-chicken-fried-chicken.gif"],
     },
     "оставить засос": {
         "aliases": ["оставить засос", "оставить_засос", "!оставить засос"],
@@ -95,7 +95,7 @@ RP_COMMANDS = {
         "aliases": ["трахнуть", "выебать", "/sex", "!трахнуть"],
         "target_text": "🔥 <b>{sender}</b> нежно трахнул <b>{target}</b>!",
         "solo_text": "🔥 <b>{sender}</b> попытался, но член не встал...",
-        "gifs": ["https://media1.tenor.com/m/xZNLVjKIT9cAAAAC/deme-demenishki.gif"],
+        "gifs": ["https://raw.githubusercontent.com/zalupassss/rp_ebaniybot/main/media/deme-demenishki.gif"],
     },
     "засосать": {
         "aliases": ["засосать", "!засосать", "/засосать"],
